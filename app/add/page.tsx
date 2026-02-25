@@ -102,7 +102,7 @@ export default function AddQuestionPage() {
         <div>
           <label className="text-sm text-gray-400">Quick Interview Answer</label>
           <textarea
-            className="w-full border rounded-lg p-2 bg-black text-white min-h-[160px]"
+            className="w-full border rounded-lg p-2 bg-black text-white min-h-40"
             value={answer}
             onChange={(e) => setAnswer(e.target.value)}
             placeholder="Write the quick answer you want to store..."
