@@ -22,7 +22,9 @@ export async function POST(req: Request) {
     const title = String(body.title ?? "").trim();
     const category = String(body.category ?? "general").trim().toLowerCase();
     const difficulty = String(body.difficulty ?? "mid").trim().toLowerCase();
-    const tags = Array.isArray(body.tags) ? body.tags.map(String) : [];
+    const tags: string[] = Array.isArray(body.tags)
+        ? body.tags.map((t: unknown) => String(t))
+        : [];
     const answer = String(body.answer ?? "").trim();
 
     if (!title) return NextResponse.json({ error: "Title is required" }, { status: 400 });
@@ -43,7 +45,7 @@ title: "${escapeYaml(title)}"
 slug: "${escapeYaml(slug)}"
 category: "${escapeYaml(category)}"
 difficulty: "${escapeYaml(difficulty)}"
-tags: [${tags.map(t => `"${escapeYaml(t)}"`).join(", ")}]
+tags: [${tags.map((t: string) => `"${escapeYaml(t)}"`).join(", ")}]
 lastUpdated: "${new Date().toISOString().slice(0, 10)}"
 ---
 
