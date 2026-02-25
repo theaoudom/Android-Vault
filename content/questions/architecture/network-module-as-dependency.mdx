@@ -1,0 +1,38 @@
+---
+title: "Can we make Retrofit network layer as a dependency (import via Gradle)?"
+slug: "network-module-as-dependency"
+category: "architecture"
+difficulty: "senior"
+tags: ["multi-module", "library", "retrofit", "gradle", "dependency"]
+lastUpdated: "2026-02-25"
+---
+
+## Quick Interview Answer
+Yes. You can package your networking setup into a **module/library** and consume it as a Gradle dependency. In the same repo, use a `:network` module. For reuse across projects, publish an AAR/Maven artifact (private registry/GitHub Packages). Keep the public API minimal to avoid dependency conflicts.
+
+## Deep Explanation
+### Option A: Multi-module in same project (most common)
+- Create module `:network`
+- Expose Retrofit service interfaces and a provider/factory
+- App module depends on `implementation(project(":network"))`
+
+### Option B: Publish as a reusable library
+- Create Android Library module
+- Configure publishing to Maven (private)
+- Consumers add:
+  - `implementation("com.company:network:1.0.0")`
+
+### Best practices
+- Keep OkHttp/Retrofit versions consistent (avoid “dependency hell”).
+- Don’t leak internal dependencies: expose only what callers need.
+- Provide configuration hooks (baseUrl, interceptors) safely.
+- Support DI (Hilt/Koin) by providing modules/providers.
+
+## Common Mistakes
+- Exposing OkHttpClient/Retrofit globally without config control
+- Version conflicts between app and library dependencies
+- Hardcoding baseUrl/secrets inside the library
+
+## Follow-up Questions
+- **Q:** What should your `network` module expose?  
+  **A:** A clean API layer (interfaces + factory) and minimal configuration surface; hide internals.

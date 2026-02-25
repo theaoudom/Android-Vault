@@ -1,0 +1,23 @@
+---
+title: "Retrofit vs OkHttp (and how they work together)"
+slug: "retrofit-vs-okhttp"
+category: "networking"
+difficulty: "mid"
+tags: ["retrofit", "okhttp", "interceptors", "api"]
+lastUpdated: "2026-02-24"
+---
+
+## Quick Interview Answer
+Retrofit is a type-safe HTTP client wrapper that turns API endpoints into Kotlin interfaces. OkHttp is the underlying HTTP engine that actually executes requests. Retrofit uses OkHttp internally and adds converters (JSON parsing) and call adapters (coroutines/RxJava).
+
+## Deep Technical Explanation
+- Retrofit builds a dynamic implementation of your interface using annotations like @GET, @POST.
+- It delegates network execution to OkHttp.
+- OkHttp handles connection pooling, TLS, interceptors, caching, retries (depending on config).
+
+## Code Example
+```kotlin
+interface Api {
+  @GET("users")
+  suspend fun users(): List<User>
+}

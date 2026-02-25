@@ -1,0 +1,53 @@
+---
+title: "Android Components (Activity, Service, BroadcastReceiver, ContentProvider)"
+slug: "android-components-overview"
+category: "components"
+difficulty: "mid"
+tags: ["activity", "service", "broadcastreceiver", "contentprovider", "lifecycle"]
+lastUpdated: "2026-02-25"
+---
+
+## Quick Interview Answer
+Android has 4 main components: **Activity** (UI), **Service** (background work), **BroadcastReceiver** (system/app events), **ContentProvider** (data sharing). Each has lifecycle rules and is declared in manifest (except many dynamic receivers).
+
+## Deep Explanation
+### Activity
+- UI entry point, controlled by lifecycle (`onCreate` → `onStart` → `onResume`).
+- Backstack + task behavior depends on launchMode, flags, and navigation.
+
+### Service
+- For long-running work without UI.
+- Modern approach: prefer **WorkManager** for deferrable background work.
+- Use **Foreground Service** for user-visible ongoing work (must show a notification).
+
+### BroadcastReceiver
+- Receives broadcasts (e.g. connectivity changes, boot completed, custom app intents).
+- Can be:
+  - Static (manifest) for limited actions (many restrictions on newer Android)
+  - Dynamic (registered at runtime)
+
+### ContentProvider
+- Standard interface for sharing data between apps (via URIs).
+- Common example: accessing contacts, media store.
+- Many apps don’t need to create one unless sharing data externally.
+
+## Code Example
+```kotlin
+// Dynamic receiver example
+val receiver = object : BroadcastReceiver() {
+  override fun onReceive(context: Context, intent: Intent) {
+    // handle event
+  }
+}
+
+context.registerReceiver(receiver, IntentFilter("com.example.ACTION"))
+``` 
+
+## Common Mistakes
+- Doing heavy work in BroadcastReceiver (should offload to WorkManager/service)
+- Starting background service on modern Android without foreground requirements
+- Misunderstanding Activity backstack when opening from notification
+
+## Follow-up Questions
+- **Q:** When choose WorkManager vs Foreground Service?
+  **A:** WorkManager for deferrable/reliable background work; Foreground Service when user must be aware immediately.

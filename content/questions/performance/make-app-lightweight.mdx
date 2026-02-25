@@ -1,0 +1,38 @@
+---
+title: "How to make an Android app lightweight (APK size, startup, memory)"
+slug: "make-app-lightweight"
+category: "performance"
+difficulty: "mid"
+tags: ["apk-size", "startup", "memory", "r8", "baseline-profile"]
+lastUpdated: "2026-02-25"
+---
+
+## Quick Interview Answer
+To make apps lightweight: reduce APK size (R8 + resource shrinking + split ABIs), improve startup (avoid heavy init in Application, lazy init, baseline profiles), and reduce memory (avoid leaks, use paging/caching properly, optimize images).
+
+## Deep Explanation
+### APK / AAB size
+- Enable R8 shrinking/obfuscation for release.
+- Enable resource shrinking.
+- Use App Bundle + ABI splits so users download only needed native libs.
+- Optimize images (WebP/AVIF where appropriate).
+- Remove unused dependencies.
+
+### Startup time
+- Avoid heavy work in `Application.onCreate`.
+- Lazy initialize SDKs.
+- Use profiling tools; consider baseline profile (for critical paths).
+
+### Memory & performance
+- Prevent memory leaks (don’t hold Activity Context in singletons).
+- Use paging for large lists.
+- Avoid decoding huge bitmaps; use image loaders with caching.
+
+## Common Mistakes
+- Too many dependencies for simple features
+- Initializing everything at app start
+- Keeping global references to Activity/Views
+
+## Follow-up Questions
+- **Q:** What’s the biggest startup killer?  
+  **A:** Doing heavy I/O or initializing many SDKs on main thread during startup.

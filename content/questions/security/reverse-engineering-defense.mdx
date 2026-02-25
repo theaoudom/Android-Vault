@@ -1,0 +1,48 @@
+---
+title: "Reverse Engineering (what it is + how to defend your Android app)"
+slug: "reverse-engineering-defense"
+category: "security"
+difficulty: "senior"
+tags: ["security", "r8", "obfuscation", "tamper", "root", "debug"]
+lastUpdated: "2026-02-25"
+---
+
+## Quick Interview Answer
+Reverse engineering means analyzing an APK to understand code/resources, modify behavior, or extract secrets. Defense is layered: **don’t ship secrets**, use **R8/ProGuard**, verify integrity (basic tamper checks), protect network calls (TLS, optionally pinning), and enforce security on the backend.
+
+## Deep Explanation
+### What attackers look for (high-level)
+- API keys / tokens in code or resources
+- Debug endpoints / logs
+- Weak auth flows
+- Modifying APK to bypass checks or enable premium features
+
+### Practical defenses
+1) **No secrets in app**
+- Anything in APK can be extracted.
+- Use backend to keep secrets server-side.
+- Use short-lived access tokens, refresh tokens securely.
+
+2) **R8/ProGuard**
+- Shrinks + obfuscates (harder to understand but not “impossible”).
+- Keep rules for reflection/serialization libraries.
+
+3) **Integrity / Tamper awareness**
+- Detect obvious tampering (debuggable flag, signature mismatch patterns).
+- Use Play Integrity API (best practice) to add server-side trust signals.
+
+4) **Runtime hardening (light)**
+- Root/debug detection concepts (avoid blocking legitimate users too aggressively).
+- Remove debug logs in release builds.
+
+5) **Backend enforcement**
+- Server must validate purchases/permissions; client is untrusted.
+
+## Common Mistakes
+- Hardcoding API keys and expecting “obfuscation” to hide it
+- Treating client checks as final authority
+- Over-aggressive root detection causing false positives
+
+## Follow-up Questions
+- **Q:** Is obfuscation enough?  
+  **A:** No. It increases cost for attackers but doesn’t prevent extraction of secrets. Backend controls matter most.

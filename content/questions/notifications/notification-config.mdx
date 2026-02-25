@@ -1,0 +1,87 @@
+---
+title: "Notification Config in Android (Channels, PendingIntent, permissions)"
+slug: "notification-config-android"
+category: "notifications"
+difficulty: "mid"
+tags: ["notifications", "notificationchannel", "pendingintent", "android13"]
+lastUpdated: "2026-02-25"
+---
+
+## Quick Interview Answer
+On Android 8+, notifications must use a **NotificationChannel** (importance controls sound/heads-up). On Android 13+, you must request **POST_NOTIFICATIONS** permission. Use a correct **PendingIntent** (usually immutable) for click actions, and always build notifications with proper priority/importance and smallIcon.
+
+## Deep Explanation
+### NotificationChannel (Android 8+)
+- Channels are required for `targetSdk >= 26`.
+- You create them once (app start).
+- Importance affects behavior:
+  - `IMPORTANCE_HIGH` → may show heads-up (depends on OEM + user settings)
+  - `IMPORTANCE_DEFAULT` → normal
+  - `IMPORTANCE_LOW/MIN` → silent / less visible
+- After channel is created, many settings are controlled by the user (your app can’t override later).
+
+### Android 13+ Permission
+- Request runtime permission `POST_NOTIFICATIONS`.
+- If denied, your notification won’t appear (or may be limited depending on device behavior).
+
+### PendingIntent
+- Must use correct flags:
+  - Use `FLAG_IMMUTABLE` for most notification click intents (recommended for security).
+  - Use `FLAG_MUTABLE` only if you must modify it (e.g., inline reply).
+- Use unique request codes if you need multiple notifications to open different content.
+
+### Common “why doesn’t it pop up?”
+- Channel importance too low
+- User disabled notifications/channel
+- Missing smallIcon
+- App in background restrictions / OEM battery optimization
+- On Android 13+: permission not granted
+
+## Code Example
+```kotlin
+// 1) Create channel once (e.g. Application.onCreate)
+val channel = NotificationChannel(
+  "general",
+  "General",
+  NotificationManager.IMPORTANCE_HIGH
+).apply {
+  description = "General notifications"
+}
+
+val nm = context.getSystemService(NotificationManager::class.java)
+nm.createNotificationChannel(channel)
+
+// 2) PendingIntent
+val intent = Intent(context, MainActivity::class.java).apply {
+  flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+}
+val pi = PendingIntent.getActivity(
+  context,
+  1001,
+  intent,
+  PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+)
+
+// 3) Build notification
+val notification = NotificationCompat.Builder(context, "general")
+  .setSmallIcon(R.drawable.ic_stat_notify)
+  .setContentTitle("Title")
+  .setContentText("Body")
+  .setAutoCancel(true)
+  .setContentIntent(pi)
+  .build()
+
+NotificationManagerCompat.from(context).notify(1001, notification)
+
+## Common Mistakes
+- Not creating a channel (Android 8+)
+- Using wrong importance (expecting heads-up but channel is LOW)
+- Using mutable PendingIntent without need
+- No permission request on Android 13+
+- Logging sensitive data in notification text
+
+## Follow-up Questions
+- **Q:** What is the difference between channel importance and NotificationCompat priority? 
+  **A:** Channel importance is system-level (Android 8+) and wins. Priority is for older/compat behavior.
+- **Q:** Why clicking notification sometimes opens wrong screen?
+  **A:** PendingIntent requestCode reused + FLAG_UPDATE_CURRENT + Activity launchMode/backstack.

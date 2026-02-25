@@ -1,0 +1,63 @@
+---
+title: "Network requests: Retrofit + OkHttp (interceptors, errors, best practices)"
+slug: "network-requests-retrofit-okhttp"
+category: "networking"
+difficulty: "mid"
+tags: ["retrofit", "okhttp", "interceptors", "timeouts", "errors"]
+lastUpdated: "2026-02-25"
+---
+
+## Quick Interview Answer
+Retrofit defines API interfaces and handles conversion (JSON ↔ objects). OkHttp executes requests and supports interceptors, caching, connection pooling, TLS. Use interceptors for auth headers/logging (careful), configure timeouts, and handle errors with a consistent result type.
+
+## Deep Explanation
+### Retrofit
+- Builds an implementation of your interface using annotations (`@GET`, `@POST`).
+- Uses converters (e.g., Moshi/Gson) to parse JSON.
+
+### OkHttp
+- Actual HTTP engine.
+- Important features:
+  - Interceptors (auth, logging, retry, caching policies)
+  - Connection pooling
+  - Timeouts
+  - Cache (if configured)
+
+### Error handling strategy
+- Separate:
+  - Network errors (no internet, timeout)
+  - HTTP errors (4xx/5xx)
+  - Parsing errors
+- Return a sealed result type to UI layer.
+
+## Code Example
+```kotlin
+val okHttp = OkHttpClient.Builder()
+  .connectTimeout(15, TimeUnit.SECONDS)
+  .readTimeout(20, TimeUnit.SECONDS)
+  .writeTimeout(20, TimeUnit.SECONDS)
+  .addInterceptor { chain ->
+    val req = chain.request().newBuilder()
+      .addHeader("Authorization", "Bearer " + tokenProvider.token())
+      .build()
+    chain.proceed(req)
+  }
+  .build()
+
+val retrofit = Retrofit.Builder()
+  .baseUrl("https://api.example.com/")
+  .client(okHttp)
+  .addConverterFactory(MoshiConverterFactory.create())
+  .build()
+```
+
+## Common Mistakes
+- Logging auth tokens in production
+- No timeout config (or too aggressive)
+- Retrying blindly on all failures
+- Handling errors only by message strings (not structured)
+
+## Follow-up Questions
+- **Q:** Difference between application interceptor and network interceptor?
+
+  **A:** Application interceptors see requests once; network interceptors observe network-level behavior (redirects, retries).

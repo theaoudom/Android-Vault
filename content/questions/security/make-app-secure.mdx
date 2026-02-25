@@ -1,0 +1,39 @@
+---
+title: "How to make an Android app more secure"
+slug: "make-app-more-secure"
+category: "security"
+difficulty: "mid"
+tags: ["security", "tls", "storage", "auth", "logging"]
+lastUpdated: "2026-02-25"
+---
+
+## Quick Interview Answer
+Security is layered: secure transport (HTTPS/TLS, optionally pinning), secure storage (EncryptedSharedPreferences/Keystore), strong auth (short-lived tokens + refresh), minimize data exposure (no logs, no secrets in app), and enforce rules on backend.
+
+## Deep Explanation
+### Network
+- Always use HTTPS.
+- Handle certificates properly; consider certificate pinning for high-risk apps (with a safe rollout plan).
+
+### Storage
+- Don’t store sensitive values in plain SharedPreferences.
+- Prefer Keystore-backed encryption for tokens/secrets.
+
+### Auth
+- Treat client as untrusted.
+- Use access tokens + refresh tokens.
+- Clear tokens on logout; rotate refresh tokens if possible.
+
+### App hardening basics
+- Disable debug logs in release.
+- Prevent screenshots for sensitive screens (if needed).
+- Validate input; avoid exporting components unless necessary.
+
+## Common Mistakes
+- Logging tokens in interceptor logs
+- Hardcoding secrets
+- Relying on client-only checks (server must validate)
+
+## Follow-up Questions
+- **Q:** Where to store JWT token?  
+  **A:** Prefer encrypted storage (Keystore-backed) and keep token lifetime short.
