@@ -14,8 +14,38 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Android Vault | Interview Prep",
-  description: "Premium Android Interview Questions & Knowledge Base",
+  metadataBase: new URL("https://androidvault.example.com"),
+  title: "Android Vault | Premium Interview Prep",
+  description: "The ultimate knowledge base and premium interview questions for modern Android Engineers. Master architecture, Compose, security, and more.",
+  keywords: [
+    "Android", "Interview", "Questions", "Kotlin", 
+    "Jetpack Compose", "Clean Architecture", "Coroutines", "FCM"
+  ],
+  authors: [{ name: "Android Vault Team" }],
+  openGraph: {
+    title: "Android Vault | Premium Interview Prep",
+    description: "Master modern Android development with premium interview questions and deep-dive lessons.",
+    url: "https://androidvault.example.com",
+    siteName: "Android Vault",
+    locale: "en_US",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Android Vault | Premium Interview Prep",
+    description: "Master modern Android development with premium interview questions and deep-dive lessons.",
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
 };
 
 export default function RootLayout({
