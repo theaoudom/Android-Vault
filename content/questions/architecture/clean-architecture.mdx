@@ -1,0 +1,108 @@
+---
+title: "What is Clean Architecture in Android and why should you use it?"
+slug: "clean-architecture"
+category: "architecture"
+difficulty: "senior"
+tags: ["clean-architecture", "mvvm", "usecase", "repository", "domain", "di", "hilt"]
+lastUpdated: "2026-05-06"
+---
+
+## Quick Interview Answer
+Clean Architecture separates your app into 3 concentric layers: **Presentation** (UI/ViewModel), **Domain** (UseCases, business logic), and **Data** (Repository implementations, API, DB). The core rule: **dependencies only point inward**. The Domain layer knows nothing about Android or databases — making it fully testable.
+
+## Deep Explanation
+
+### The Three Layers
+
+```
+┌───────────────────────────────────────────┐
+│            PRESENTATION LAYER             │
+│   (Activity/Fragment, ViewModel, State)   │
+└──────────────────┬────────────────────────┘
+                   │ calls
+┌──────────────────▼────────────────────────┐
+│               DOMAIN LAYER                │
+│    (UseCases, Entities, Repository        │
+│     Interfaces — pure Kotlin, no Android) │
+└──────────────────┬────────────────────────┘
+                   │ implements
+┌──────────────────▼────────────────────────┐
+│               DATA LAYER                  │
+│  (RepositoryImpl, Retrofit, Room, Cache)  │
+└───────────────────────────────────────────┘
+```
+
+### Domain Layer: The Heart
+Pure Kotlin — zero Android imports. Contains business logic that doesn't change when you switch databases or UI frameworks.
+
+```kotlin
+// Entity — plain data class
+data class User(val id: String, val name: String, val email: String)
+
+// Repository interface — defined in Domain, implemented in Data
+interface UserRepository {
+    suspend fun getUser(id: String): User
+    suspend fun saveUser(user: User)
+}
+
+// UseCase — single responsibility, orchestrates repository calls
+class GetUserUseCase(private val repository: UserRepository) {
+    suspend operator fun invoke(id: String): User = repository.getUser(id)
+}
+```
+
+### Data Layer: Implementation
+```kotlin
+class UserRepositoryImpl(
+    private val api: UserApiService,
+    private val dao: UserDao,
+) : UserRepository {
+    override suspend fun getUser(id: String): User {
+        return try {
+            val remote = api.fetchUser(id)
+            dao.insert(remote.toEntity())
+            remote.toDomain()
+        } catch (e: Exception) {
+            dao.getUser(id)?.toDomain() ?: throw e
+        }
+    }
+}
+```
+
+### Presentation Layer: ViewModel
+```kotlin
+@HiltViewModel
+class UserViewModel @Inject constructor(
+    private val getUserUseCase: GetUserUseCase
+) : ViewModel() {
+
+    private val _uiState = MutableStateFlow<UserUiState>(UserUiState.Loading)
+    val uiState: StateFlow<UserUiState> = _uiState.asStateFlow()
+
+    fun loadUser(id: String) {
+        viewModelScope.launch {
+            _uiState.value = UserUiState.Loading
+            runCatching { getUserUseCase(id) }
+                .onSuccess { _uiState.value = UserUiState.Success(it) }
+                .onFailure { _uiState.value = UserUiState.Error(it.message) }
+        }
+    }
+}
+```
+
+### Why UseCases Are Worth It
+- **Single responsibility**: Each UseCase does one thing, easily replaceable.
+- **Testability**: Test business rules without any Android framework, Retrofit, or Room.
+- **Reusability**: Multiple ViewModels can reuse the same UseCase.
+
+## Common Mistakes
+- Putting business logic in the ViewModel (should be in UseCases).
+- Importing Android classes (Context, Log) into the Domain layer.
+- Creating a `UseCase` that just passes through to the repository with no logic — skip UseCases in this case and call the repo directly.
+- Having the Repository interface live in the Data layer (it must live in Domain).
+
+## Follow-up Questions
+- **Q:** Is Clean Architecture overkill for small apps?  
+  **A:** Possibly. For simple CRUD apps, MVVM + Repository is enough. Clean Architecture shines in large, multi-team projects where testability and feature isolation matter.
+- **Q:** How does Hilt fit in?  
+  **A:** Hilt provides DI across layers. `@Binds` maps your interfaces to implementations, and `@HiltViewModel` injects UseCases into ViewModels automatically.

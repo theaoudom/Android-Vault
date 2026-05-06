@@ -1,0 +1,140 @@
+---
+title: "How do you implement Push Notifications with FCM in Android?"
+slug: "fcm-push-notifications"
+category: "notifications"
+difficulty: "mid"
+tags: ["fcm", "firebase", "push-notifications", "foreground", "background", "notification-channel"]
+lastUpdated: "2026-05-06"
+---
+
+## Quick Interview Answer
+Use **Firebase Cloud Messaging (FCM)**. Extend `FirebaseMessagingService`, override `onMessageReceived` to handle foreground messages, and `onNewToken` to register the device token with your backend. For background/killed state, FCM builds and shows the notification automatically if you include a `notification` payload.
+
+## Deep Explanation
+
+### How FCM Works
+```
+Your Server
+    │
+    │ HTTP POST to FCM API (with device token)
+    ▼
+FCM Server
+    │
+    │ Delivers to device
+    ▼
+Android App
+    ├─ App in FOREGROUND → onMessageReceived() fires
+    └─ App in BACKGROUND/KILLED → FCM auto-displays notification
+```
+
+### Step 1: Add Firebase Dependencies
+```kotlin
+// build.gradle.kts
+implementation(platform("com.google.firebase:firebase-bom:33.0.0"))
+implementation("com.google.firebase:firebase-messaging-ktx")
+```
+
+### Step 2: FirebaseMessagingService
+```kotlin
+class MyFirebaseMessagingService : FirebaseMessagingService() {
+
+    // Called when a new FCM token is generated (first run or token refresh)
+    override fun onNewToken(token: String) {
+        super.onNewToken(token)
+        // Send this token to your server
+        sendTokenToServer(token)
+    }
+
+    // Called when app is in FOREGROUND
+    override fun onMessageReceived(message: RemoteMessage) {
+        super.onMessageReceived(message)
+
+        val title = message.notification?.title ?: message.data["title"] ?: "New Message"
+        val body = message.notification?.body ?: message.data["body"] ?: ""
+
+        showNotification(title, body)
+    }
+
+    private fun showNotification(title: String, body: String) {
+        val channelId = "default_channel"
+        val intent = Intent(this, MainActivity::class.java).apply {
+            addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+        }
+        val pendingIntent = PendingIntent.getActivity(
+            this, 0, intent,
+            PendingIntent.FLAG_ONE_SHOT or PendingIntent.FLAG_IMMUTABLE
+        )
+
+        val notification = NotificationCompat.Builder(this, channelId)
+            .setContentTitle(title)
+            .setContentText(body)
+            .setSmallIcon(R.drawable.ic_notification)
+            .setAutoCancel(true)
+            .setContentIntent(pendingIntent)
+            .build()
+
+        NotificationManagerCompat.from(this).notify(System.currentTimeMillis().toInt(), notification)
+    }
+}
+```
+
+### Step 3: Register Service in Manifest
+```xml
+<service
+    android:name=".MyFirebaseMessagingService"
+    android:exported="false">
+    <intent-filter>
+        <action android:name="com.google.firebase.MESSAGING_EVENT" />
+    </intent-filter>
+</service>
+```
+
+### Step 4: Create Notification Channel (Android 8+)
+Create this channel in `Application.onCreate()` or `MainActivity.onCreate()`:
+```kotlin
+fun createNotificationChannel(context: Context) {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        val channel = NotificationChannel(
+            "default_channel",
+            "General Notifications",
+            NotificationManager.IMPORTANCE_DEFAULT
+        ).apply {
+            description = "General app notifications"
+        }
+        val manager = context.getSystemService(NotificationManager::class.java)
+        manager.createNotificationChannel(channel)
+    }
+}
+```
+
+### Step 5: Request POST_NOTIFICATIONS Permission (Android 13+)
+```kotlin
+// In Activity
+if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+    if (!NotificationManagerCompat.from(this).areNotificationsEnabled()) {
+        requestPermissions(arrayOf(Manifest.permission.POST_NOTIFICATIONS), 100)
+    }
+}
+```
+
+### FCM Payload Types
+
+| Type         | Background | Foreground                      | Data Available |
+|--------------|------------|---------------------------------|----------------|
+| `notification` | Auto-shown | `onMessageReceived` fires       | ❌ (limited)   |
+| `data`       | `onMessageReceived` fires | `onMessageReceived` fires | ✅ Full data  |
+| Both         | Auto-shown (notification part) | `onMessageReceived` fires | ✅            |
+
+> **Tip:** Use **data-only payloads** for full control, handle them in `onMessageReceived` to build a custom UI notification in both foreground and background.
+
+## Common Mistakes
+- Relying on the automatic background display when you need to show rich notifications (use data-only payload instead).
+- Not creating a Notification Channel on Android 8+ — notifications will silently fail.
+- Forgetting to request `POST_NOTIFICATIONS` permission on Android 13+ — users will never see notifications.
+- Storing the FCM token locally and never refreshing it — always implement `onNewToken`.
+
+## Follow-up Questions
+- **Q:** What happens to the FCM token after a factory reset?  
+  **A:** A new token is generated. `onNewToken` fires and you must sync the new token with your server.
+- **Q:** How do you send a notification to multiple devices (topics)?  
+  **A:** Use `FirebaseMessaging.getInstance().subscribeToTopic("topic_name")` on the device. Then target the topic via `"to": "/topics/topic_name"` in your server request.

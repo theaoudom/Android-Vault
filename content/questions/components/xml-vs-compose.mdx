@@ -1,0 +1,74 @@
+---
+title: "What is the difference between traditional XML/Java views and Jetpack Compose?"
+slug: "xml-vs-compose"
+category: "components"
+difficulty: "mid"
+tags: ["compose", "xml", "ui", "declarative", "imperative", "state"]
+lastUpdated: "2026-05-06"
+---
+
+## Quick Interview Answer
+**XML/Java** uses an **imperative** approach where UI is defined in XML and manually updated via Java/Kotlin (e.g., `textView.setText()`). It suffers from state synchronization bugs. 
+**Jetpack Compose** uses a **declarative** approach written entirely in Kotlin. You describe *what* the UI should look like based on state, and when the state changes, Compose automatically recomposes the UI to reflect the new state.
+
+## Deep Explanation
+
+### 1. Imperative vs Declarative
+* **XML (Imperative):** You build a static layout tree, find the views using `findViewById` or ViewBinding, and explicitly mutate them. You are responsible for keeping the UI in sync with the data.
+* **Compose (Declarative):** You define UI as a function of data. When data changes, the framework re-runs the composable functions with new data to update the screen. You never manually mutate a view.
+
+### 2. State Management
+* **XML:** State is often duplicated. The backend provides data, the ViewModel holds the data, and the `TextView` holds its own text state. If the ViewModel and the `TextView` get out of sync, you get bugs.
+* **Compose:** UI is stateless by default. It relies on a single source of truth (State hoisting). If the state changes, the UI updates. If the state doesn't change, the UI doesn't change.
+
+### 3. Language & Tooling
+* **XML:** UI is written in XML, logic in Kotlin/Java. This context switching slows down development. Custom views require subclassing `View`, writing custom XML attributes, and handling drawing/measuring.
+* **Compose:** Everything is written in Kotlin. You can use `if` statements, `for` loops, and other Kotlin constructs directly in your UI code. Creating custom views is as simple as creating a new `@Composable` function.
+
+### 4. Reusability and Composition
+* **XML:** Reusing UI involves `<include>` tags, custom Views, or Fragments. It can be heavyweight and rigid. Inheritance is the primary way Views are built (e.g., `Button` extends `TextView` extends `View`).
+* **Compose:** Emphasizes composition over inheritance. You build complex UI by combining smaller, simpler `@Composable` functions. 
+
+### Code Comparison
+
+**XML / Imperative:**
+```xml
+<!-- layout.xml -->
+<Button
+    android:id="@+id/myButton"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:text="Click me" />
+```
+```kotlin
+// Activity/Fragment
+val button = findViewById<Button>(R.id.myButton)
+button.setOnClickListener {
+    button.text = "Clicked!"
+}
+```
+
+**Jetpack Compose / Declarative:**
+```kotlin
+@Composable
+fun MyButton() {
+    // State is hoisted or managed locally
+    var clicked by remember { mutableStateOf(false) }
+
+    Button(onClick = { clicked = true }) {
+        Text(if (clicked) "Clicked!" else "Click me")
+    }
+}
+```
+
+## Common Mistakes
+- Trying to manually force a recomposition in Compose.
+- Holding Android `View` references or contexts inside Compose state.
+- Creating massive, monolithic `@Composable` functions instead of breaking them down into smaller, reusable components.
+- In XML, forgetting to update the UI when the data layer changes, leading to stale data on screen.
+
+## Follow-up Questions
+- **Q:** How does Compose know when to update the screen?
+  **A:** Compose uses a specialized State system (like `MutableState`). During composition, Compose tracks which State objects are read by which composables. When a State changes, Compose invalidates and re-executes only those specific composables.
+- **Q:** Can you mix XML and Compose?
+  **A:** Yes, via interoperability. You can put a `ComposeView` inside an XML layout to host Compose content, or use `AndroidView` inside a Compose layout to host traditional Android Views.

@@ -1,60 +1,53 @@
 import Link from "next/link";
 import { getAllQuestions } from "@/lib/content";
 import { notFound } from "next/navigation";
+import SearchBox from "@/components/SearchBox";
 
 export default async function CategoryPage({
   params,
 }: {
   params: Promise<{ category: string }>;
 }) {
-
   const { category } = await params;
-
   const questions = getAllQuestions();
-
-  const filtered = questions.filter(
-    q => q.category === category
-  );
+  const filtered = questions.filter((q) => q.category === category);
 
   if (filtered.length === 0) {
     return notFound();
   }
 
   return (
-    <main className="p-6 max-w-3xl mx-auto">
-
-      <a href="/" className="underline text-sm">
-        ← Home
-      </a>
-
-      <h1 className="text-3xl font-bold mt-4 mb-6">
-        Category: {category}
-      </h1>
-
-      <ul className="space-y-4">
-
-        {filtered.map(q => (
-          <li
-            key={q.slug}
-            className="border rounded-lg p-4"
+    <main className="min-h-screen pb-16">
+      {/* Page Header */}
+      <div
+        className="py-16 px-8 border-b"
+        style={{ borderColor: "rgba(255,255,255,0.06)" }}
+      >
+        <div className="max-w-5xl mx-auto">
+          {/* Back link */}
+          <Link
+            href="/categories"
+            className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-white transition-colors mb-8 group"
           >
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+              <line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/>
+            </svg>
+            All Categories
+          </Link>
+          
+          <p className="text-xs font-mono tracking-widest text-purple-400 uppercase mb-3">Category</p>
+          <h1 className="text-4xl md:text-5xl font-extrabold mb-4 capitalize">
+            {category}
+          </h1>
+          <p className="text-gray-400 text-lg max-w-2xl">
+            {filtered.length} premium questions related to {category}.
+          </p>
+        </div>
+      </div>
 
-            <Link
-              href={`/questions/${q.slug}`}
-              className="text-lg font-semibold underline"
-            >
-              {q.title}
-            </Link>
-
-            <div className="text-gray-400 text-sm">
-              {q.difficulty}
-            </div>
-
-          </li>
-        ))}
-
-      </ul>
-
+      <div className="max-w-5xl mx-auto px-8 pt-10">
+        <SearchBox questions={filtered} />
+      </div>
     </main>
   );
-}
+}

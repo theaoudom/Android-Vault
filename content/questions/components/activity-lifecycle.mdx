@@ -1,0 +1,91 @@
+---
+title: "Explain the Android Activity Lifecycle and how to handle configuration changes"
+slug: "activity-lifecycle"
+category: "components"
+difficulty: "mid"
+tags: ["activity", "lifecycle", "configuration-change", "savedinstancestate", "viewmodel"]
+lastUpdated: "2026-05-06"
+---
+
+## Quick Interview Answer
+The Activity Lifecycle is a set of callback methods (`onCreate` → `onStart` → `onResume` → `onPause` → `onStop` → `onDestroy`) that Android calls as the activity changes states. Configuration changes (rotation, locale) destroy and recreate the Activity. Survive them using `ViewModel` for data and `onSaveInstanceState` for lightweight UI state.
+
+## Deep Explanation
+
+### Lifecycle States
+```
+        [App Launched]
+              │
+         onCreate()
+              │
+          onStart()  ←─────────────┐
+              │                    │
+         onResume()   [RESUMED]    │
+              │                    │
+     User navigates away           │
+              │                    │
+          onPause()                │
+              │                    │  User comes back
+          onStop()                 │
+              │                    │
+      onRestart() ────────────────►┘
+              │
+         onDestroy()
+```
+
+| Callback       | When it fires                                        | Typical Usage                                  |
+|----------------|------------------------------------------------------|------------------------------------------------|
+| `onCreate()`   | Activity first created                               | Init UI, ViewModels, data binding              |
+| `onStart()`    | Becomes visible to user                              | Register receivers if needed                   |
+| `onResume()`   | Foreground, user can interact                        | Start animations, camera, sensors              |
+| `onPause()`    | Partially obscured (another activity on top)         | Pause animations, release sensors              |
+| `onStop()`     | Fully hidden                                         | Release heavy resources, save data             |
+| `onDestroy()`  | Activity is finishing or system is killing it        | Final cleanup                                  |
+
+### Configuration Changes
+A screen rotation triggers: `onPause → onStop → onDestroy → onCreate → onStart → onResume`.
+
+#### Strategy 1: ViewModel (Recommended)
+```kotlin
+class MyViewModel : ViewModel() {
+    val userList: LiveData<List<User>> = repository.getUsers()
+}
+
+// In Activity:
+val viewModel: MyViewModel by viewModels()
+```
+ViewModel survives configuration changes automatically. Perfect for data.
+
+#### Strategy 2: onSaveInstanceState (Lightweight UI state)
+```kotlin
+override fun onSaveInstanceState(outState: Bundle) {
+    super.onSaveInstanceState(outState)
+    outState.putString("scroll_key", scrollPosition)
+}
+
+override fun onCreate(savedInstanceState: Bundle?) {
+    super.onCreate(savedInstanceState)
+    val scroll = savedInstanceState?.getString("scroll_key")
+}
+```
+Use for small, parcelable state like scroll positions or selected tab indices.
+
+#### Strategy 3: android:configChanges (Avoid if possible)
+```xml
+<activity
+    android:name=".MyActivity"
+    android:configChanges="orientation|screenSize" />
+```
+Override `onConfigurationChanged()` to handle manually. Discouraged — you lose system support for proper UI adaptation.
+
+## Common Mistakes
+- Doing heavy work (network calls, DB queries) in `onCreate` directly instead of using ViewModel/repository.
+- Leaking context by holding a reference to an Activity inside a non-lifecycle-aware object (e.g., a singleton).
+- Using `android:configChanges` without understanding the consequences for layout adaptation.
+- Forgetting that `onPause` must be fast — doing I/O here blocks UI.
+
+## Follow-up Questions
+- **Q:** What is the difference between `finish()` and pressing the Back button?  
+  **A:** They both call `finish()` under the hood, but the back button uses the system back dispatcher. Both trigger `onPause → onStop → onDestroy`.
+- **Q:** When does `onDestroy` NOT get called?  
+  **A:** When the system kills the process to reclaim memory (process death). That's why you must save critical state in `onSaveInstanceState`, not just in `onDestroy`.

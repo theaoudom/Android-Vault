@@ -2,97 +2,117 @@ import Link from "next/link";
 import { getAllQuestions } from "@/lib/content";
 
 export default function HomePage() {
-
   const questions = getAllQuestions();
-
-  const categories = Array.from(
-    new Set(questions.map(q => q.category))
-  );
-
+  const categories = Array.from(new Set(questions.map(q => q.category)));
   const latest = questions.slice(0, 5);
 
   return (
-    <main className="p-8 max-w-4xl mx-auto">
-
-      <h1 className="text-4xl font-bold mb-2">
-        Android Vault
-      </h1>
-
-      <p className="text-gray-400 mb-8">
-        Android Interview Questions & Knowledge Base
-      </p>
-
-      {/* Stats */}
-      <div className="grid grid-cols-2 gap-4 mb-8">
-
-        <div className="border rounded-lg p-4">
-          <div className="text-2xl font-bold">
-            {questions.length}
-          </div>
-          <div className="text-gray-400">
-            Questions
-          </div>
+    <main className="min-h-screen pb-16">
+      {/* Hero Section */}
+      <section className="relative pt-32 pb-20 px-8 flex flex-col items-center justify-center text-center overflow-hidden">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full max-w-3xl opacity-20 pointer-events-none">
+          <div className="absolute inset-0 bg-primary blur-[120px] rounded-full mix-blend-screen"></div>
         </div>
-
-        <div className="border rounded-lg p-4">
-          <div className="text-2xl font-bold">
-            {categories.length}
-          </div>
-          <div className="text-gray-400">
-            Categories
-          </div>
-        </div>
-
-      </div>
-
-      {/* Categories */}
-      <h2 className="text-xl font-semibold mb-3">
-        Categories
-      </h2>
-
-      <div className="flex flex-wrap gap-2 mb-8">
-
-        {categories.map(cat => (
+        
+        <div className="relative z-10 animate-float">
+          <h1 className="text-5xl md:text-7xl font-extrabold mb-6 tracking-tight">
+            Android <span className="text-gradient">Vault</span>
+          </h1>
+          <p className="text-xl md:text-2xl text-gray-400 max-w-2xl mx-auto mb-10 leading-relaxed">
+            The ultimate knowledge base and premium interview questions for modern Android Engineers.
+          </p>
           <Link
-            key={cat}
-            href={`/categories/${cat}`}
-            className="border px-3 py-1 rounded-lg text-sm inline-block"
+            href="/questions"
+            className="glass-panel px-8 py-4 rounded-full font-semibold text-lg hover:bg-white/10 transition-all duration-300 inline-flex items-center gap-2 group"
           >
-            {cat}
+            Start Exploring
+            <span className="group-hover:translate-x-1 transition-transform">→</span>
           </Link>
-        ))}
+        </div>
+      </section>
 
+      <div className="max-w-5xl mx-auto px-8">
+        {/* Stats Section */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-16 -mt-8 relative z-20">
+          <div className="glass-panel rounded-2xl p-6 text-center hover:-translate-y-1 transition-transform duration-300">
+            <div className="text-4xl font-black text-primary mb-2">{questions.length}</div>
+            <div className="text-sm text-gray-400 font-medium uppercase tracking-wider">Questions</div>
+          </div>
+          <div className="glass-panel rounded-2xl p-6 text-center hover:-translate-y-1 transition-transform duration-300">
+            <div className="text-4xl font-black text-secondary mb-2">{categories.length}</div>
+            <div className="text-sm text-gray-400 font-medium uppercase tracking-wider">Categories</div>
+          </div>
+          <div className="glass-panel rounded-2xl p-6 text-center hover:-translate-y-1 transition-transform duration-300">
+            <div className="text-4xl font-black text-accent mb-2">10+</div>
+            <div className="text-sm text-gray-400 font-medium uppercase tracking-wider">Topics</div>
+          </div>
+          <div className="glass-panel rounded-2xl p-6 text-center hover:-translate-y-1 transition-transform duration-300">
+            <div className="text-4xl font-black text-white mb-2">∞</div>
+            <div className="text-sm text-gray-400 font-medium uppercase tracking-wider">Potential</div>
+          </div>
+        </div>
+
+        <div className="grid md:grid-cols-3 gap-12">
+          {/* Categories */}
+          <div className="md:col-span-1">
+            <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+              <span className="w-8 h-1 bg-primary rounded-full"></span>
+              Categories
+            </h2>
+            <div className="flex flex-wrap gap-3">
+              {categories.map(cat => (
+                <Link
+                  key={cat}
+                  href={`/categories/${cat}`}
+                  className="glass-panel px-4 py-2 rounded-xl text-sm font-medium hover:bg-primary/20 hover:border-primary/50 transition-all duration-300 capitalize"
+                >
+                  {cat}
+                </Link>
+              ))}
+            </div>
+          </div>
+
+          {/* Latest Questions */}
+          <div className="md:col-span-2">
+            <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+              <span className="w-8 h-1 bg-secondary rounded-full"></span>
+              Latest Insights
+            </h2>
+            <div className="space-y-4">
+              {latest.map(q => (
+                <Link
+                  key={q.slug}
+                  href={`/questions/${q.slug}`}
+                  className="block glass-panel p-6 rounded-2xl hover:bg-white/5 transition-all duration-300 group"
+                >
+                  <div className="flex justify-between items-start gap-4">
+                    <div>
+                      <h3 className="text-lg font-semibold mb-2 group-hover:text-primary transition-colors">
+                        {q.title}
+                      </h3>
+                      <div className="flex items-center gap-3 text-xs text-gray-400 font-mono">
+                        <span className="bg-white/10 px-2 py-1 rounded uppercase tracking-wider">{q.category}</span>
+                      </div>
+                    </div>
+                    <div className="text-gray-500 group-hover:text-white transition-colors">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+            
+            <div className="mt-8 text-center md:text-left">
+               <Link
+                href="/questions"
+                className="text-gray-400 hover:text-white transition-colors inline-flex items-center gap-2 font-medium"
+              >
+                Browse Entire Vault →
+              </Link>
+            </div>
+          </div>
+        </div>
       </div>
-
-      {/* Latest */}
-      <h2 className="text-xl font-semibold mb-3">
-        Latest Questions
-      </h2>
-
-      <ul className="space-y-3 mb-8">
-
-        {latest.map(q => (
-          <li key={q.slug}>
-
-            <Link
-              href={`/questions/${q.slug}`}
-              className="underline"
-            >
-              {q.title}
-            </Link>
-
-          </li>
-        ))}
-
-      </ul>
-
-      <Link
-        href="/questions"
-        className="border px-4 py-2 rounded-lg inline-block"
-      >
-        Browse All Questions →
-      </Link>
-
     </main>
   );
 }

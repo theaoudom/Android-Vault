@@ -1,0 +1,134 @@
+---
+title: "How do you handle API errors and retries gracefully with Retrofit?"
+slug: "retrofit-error-handling"
+category: "networking"
+difficulty: "mid"
+tags: ["retrofit", "okhttp", "error-handling", "sealed-class", "result", "interceptor", "retry"]
+lastUpdated: "2026-05-06"
+---
+
+## Quick Interview Answer
+Wrap Retrofit calls in a `Result<T>` or sealed class using a `safeApiCall` helper. Handle HTTP errors by inspecting the error body from `Response<T>`. Use OkHttp interceptors for global retry logic and authentication refresh. Never let raw exceptions bubble into the UI layer.
+
+## Deep Explanation
+
+### The Problem: Raw Exceptions in the UI
+Bad pattern — letting Retrofit exceptions crash the ViewModel:
+```kotlin
+// ❌ Never do this
+val users = api.getUsers()  // Can throw IOException, HttpException
+textView.text = users.name
+```
+
+### Strategy 1: Sealed Class for Network Results
+```kotlin
+sealed class NetworkResult<out T> {
+    data class Success<T>(val data: T) : NetworkResult<T>()
+    data class Error(val code: Int, val message: String) : NetworkResult<Nothing>()
+    data object Loading : NetworkResult<Nothing>()
+}
+```
+
+### Strategy 2: safeApiCall Extension
+```kotlin
+suspend fun <T> safeApiCall(call: suspend () -> Response<T>): NetworkResult<T> {
+    return try {
+        val response = call()
+        if (response.isSuccessful) {
+            NetworkResult.Success(response.body()!!)
+        } else {
+            val errorBody = response.errorBody()?.string() ?: "Unknown error"
+            NetworkResult.Error(response.code(), errorBody)
+        }
+    } catch (e: HttpException) {
+        NetworkResult.Error(e.code(), e.message())
+    } catch (e: IOException) {
+        NetworkResult.Error(-1, "Network error: check your connection")
+    } catch (e: Exception) {
+        NetworkResult.Error(-1, e.localizedMessage ?: "Unexpected error")
+    }
+}
+```
+
+### Usage in Repository
+```kotlin
+class UserRepository(private val api: UserApiService) {
+    suspend fun getUser(id: String): NetworkResult<User> = safeApiCall {
+        api.getUser(id)  // Returns Response<User>
+    }
+}
+```
+
+### Strategy 3: OkHttp Interceptor for Retry
+```kotlin
+class RetryInterceptor(private val maxRetries: Int = 3) : Interceptor {
+    override fun intercept(chain: Interceptor.Chain): Response {
+        var attempt = 0
+        var response: Response
+        var exception: IOException? = null
+
+        while (attempt < maxRetries) {
+            try {
+                response = chain.proceed(chain.request())
+                if (response.isSuccessful) return response
+                if (response.code == 401) return response // Don't retry auth failures
+                response.close()
+            } catch (e: IOException) {
+                exception = e
+            }
+            attempt++
+            Thread.sleep(1000L * attempt) // Exponential-ish backoff
+        }
+        throw exception ?: IOException("Request failed after $maxRetries retries")
+    }
+}
+
+// Register in OkHttpClient
+val client = OkHttpClient.Builder()
+    .addInterceptor(RetryInterceptor(maxRetries = 3))
+    .build()
+```
+
+### Strategy 4: Token Refresh with Authenticator
+```kotlin
+class TokenAuthenticator(
+    private val tokenManager: TokenManager
+) : Authenticator {
+    override fun authenticate(route: Route?, response: Response): Request? {
+        if (response.code != 401) return null
+        val newToken = runBlocking { tokenManager.refreshToken() } ?: return null
+        return response.request.newBuilder()
+            .header("Authorization", "Bearer $newToken")
+            .build()
+    }
+}
+```
+
+### UI Layer Consumption
+```kotlin
+viewModelScope.launch {
+    _uiState.value = NetworkResult.Loading
+    _uiState.value = repository.getUser(userId)
+}
+
+// Collect in Fragment:
+viewModel.uiState.collect { result ->
+    when (result) {
+        is NetworkResult.Loading -> showLoader()
+        is NetworkResult.Success -> showUser(result.data)
+        is NetworkResult.Error -> showError(result.message)
+    }
+}
+```
+
+## Common Mistakes
+- Using `!!` (non-null assertion) on `response.body()` without checking `isSuccessful` first.
+- Retrying on `401 Unauthorized` infinitely — always break on auth failure.
+- Parsing error bodies in the UI layer instead of the repository.
+- Not handling `SocketTimeoutException` separately from `IOException`.
+
+## Follow-up Questions
+- **Q:** What's the difference between an `Interceptor` and an `Authenticator`?  
+  **A:** Interceptors see every request/response. Authenticators specifically trigger on 401 responses to refresh credentials.
+- **Q:** How do you test the `safeApiCall` helper?  
+  **A:** Use `MockWebServer` from OkHttp to simulate real HTTP responses including errors, then assert on the `NetworkResult` returned.

@@ -1,0 +1,121 @@
+---
+title: "How do you implement secure Biometric Authentication in Android?"
+slug: "biometric-prompt"
+category: "security"
+difficulty: "senior"
+tags: ["biometric", "security", "fingerprint", "authentication", "cryptography", "keystore"]
+lastUpdated: "2026-05-06"
+---
+
+## Quick Interview Answer
+Use the `BiometricPrompt` API (from `androidx.biometric`) with a `CryptoObject` backed by a `Cipher` tied to an Android Keystore key. This ensures authentication is cryptographically bound — a successful biometric check is the only way to unlock the key to perform encryption/decryption, preventing spoofing.
+
+## Deep Explanation
+
+### Why CryptoObject Matters
+Without `CryptoObject`, biometric authentication only gives you a boolean "success" — easily spoofable in a compromised environment. By tying the auth to an Android Keystore key with `userAuthenticationRequired = true`, the key literally cannot be used unless the biometric check passes at the hardware level.
+
+### Step 1: Add Dependency
+```kotlin
+// build.gradle.kts
+implementation("androidx.biometric:biometric:1.2.0-alpha05")
+```
+
+### Step 2: Create the Keystore Key
+```kotlin
+private fun createSecretKey() {
+    val keyStore = KeyStore.getInstance("AndroidKeyStore").also { it.load(null) }
+    
+    if (keyStore.containsAlias(KEY_NAME)) return // Already created
+
+    val keyGenerator = KeyGenerator.getInstance(
+        KeyProperties.KEY_ALGORITHM_AES, "AndroidKeyStore"
+    )
+    keyGenerator.init(
+        KeyGenParameterSpec.Builder(
+            KEY_NAME,
+            KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT
+        )
+        .setBlockModes(KeyProperties.BLOCK_MODE_CBC)
+        .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_PKCS7)
+        .setUserAuthenticationRequired(true)          // Requires biometric
+        .setInvalidatedByBiometricEnrollment(true)    // Invalidated if new fingerprint added
+        .build()
+    )
+    keyGenerator.generateKey()
+}
+```
+
+### Step 3: Build the CryptoObject
+```kotlin
+private fun getCipher(): Cipher {
+    return Cipher.getInstance(
+        "${KeyProperties.KEY_ALGORITHM_AES}/${KeyProperties.BLOCK_MODE_CBC}/${KeyProperties.ENCRYPTION_PADDING_PKCS7}"
+    )
+}
+
+private fun buildCryptoObject(): BiometricPrompt.CryptoObject {
+    createSecretKey()
+    val keyStore = KeyStore.getInstance("AndroidKeyStore").also { it.load(null) }
+    val secretKey = keyStore.getKey(KEY_NAME, null) as SecretKey
+    val cipher = getCipher()
+    cipher.init(Cipher.ENCRYPT_MODE, secretKey)
+    return BiometricPrompt.CryptoObject(cipher)
+}
+```
+
+### Step 4: Show the BiometricPrompt
+```kotlin
+// In Fragment or Activity
+private fun showBiometricPrompt() {
+    val executor = ContextCompat.getMainExecutor(requireContext())
+    
+    val callback = object : BiometricPrompt.AuthenticationCallback() {
+        override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
+            val cipher = result.cryptoObject?.cipher
+            // Use cipher to encrypt/decrypt sensitive data
+            val encrypted = cipher?.doFinal("secret".toByteArray())
+        }
+
+        override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
+            // Handle error (user cancelled, lockout, etc.)
+        }
+
+        override fun onAuthenticationFailed() {
+            // A valid biometric was presented but not recognized
+        }
+    }
+
+    val promptInfo = BiometricPrompt.PromptInfo.Builder()
+        .setTitle("Authenticate")
+        .setSubtitle("Use your fingerprint or face to continue")
+        .setNegativeButtonText("Use Password")
+        .build()
+
+    BiometricPrompt(this, executor, callback)
+        .authenticate(promptInfo, buildCryptoObject())
+}
+```
+
+### Step 5: Check Availability First
+```kotlin
+val biometricManager = BiometricManager.from(requireContext())
+when (biometricManager.canAuthenticate(BIOMETRIC_STRONG or DEVICE_CREDENTIAL)) {
+    BiometricManager.BIOMETRIC_SUCCESS -> showBiometricPrompt()
+    BiometricManager.BIOMETRIC_ERROR_NO_HARDWARE -> showPasswordFallback()
+    BiometricManager.BIOMETRIC_ERROR_NONE_ENROLLED -> promptEnrollBiometrics()
+    else -> showPasswordFallback()
+}
+```
+
+## Common Mistakes
+- Using biometric auth **without** `CryptoObject` — provides no real security guarantee.
+- Not handling `KeyPermanentlyInvalidatedException` when a new fingerprint is enrolled.
+- Storing the encryption key outside the Android Keystore (e.g., in SharedPreferences).
+- Not providing a fallback (device credential or password) for non-biometric devices.
+
+## Follow-up Questions
+- **Q:** What is `setInvalidatedByBiometricEnrollment(true)`?  
+  **A:** It invalidates the secret key when new biometric credentials are enrolled, forcing re-authentication with the device PIN, preventing a malicious party from adding their fingerprint to access data.
+- **Q:** What is the difference between `BIOMETRIC_STRONG` and `BIOMETRIC_WEAK`?  
+  **A:** `BIOMETRIC_STRONG` (Class 3) is required for `CryptoObject` use and meets a higher security bar. `BIOMETRIC_WEAK` (Class 2) is for convenience and cannot be used with the Keystore.

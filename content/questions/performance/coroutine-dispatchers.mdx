@@ -1,0 +1,99 @@
+---
+title: "What are Kotlin Coroutine Dispatchers and when should you use each one?"
+slug: "coroutine-dispatchers"
+category: "performance"
+difficulty: "mid"
+tags: ["kotlin", "coroutines", "dispatchers", "threading", "concurrency", "performance"]
+lastUpdated: "2026-05-06"
+---
+
+## Quick Interview Answer
+Coroutine Dispatchers determine which thread or thread pool a coroutine runs on. Use `Dispatchers.Main` for UI updates, `Dispatchers.IO` for disk/network I/O, and `Dispatchers.Default` for CPU-intensive computation. `Dispatchers.Unconfined` is for special cases and should generally be avoided in production.
+
+## Deep Explanation
+
+### The Four Core Dispatchers
+
+| Dispatcher              | Thread Pool          | Best For                                    |
+|-------------------------|----------------------|---------------------------------------------|
+| `Dispatchers.Main`      | Android Main Thread  | UI updates, LiveData/Flow observation       |
+| `Dispatchers.IO`        | 64+ shared threads   | Network calls, DB reads/writes, file I/O    |
+| `Dispatchers.Default`   | CPU core count       | Sorting, parsing JSON, heavy computation    |
+| `Dispatchers.Unconfined` | No specific thread  | Testing, rare advanced use cases            |
+
+### Dispatchers.Main
+```kotlin
+// ViewModel
+viewModelScope.launch(Dispatchers.Main) {
+    val data = fetchFromNetwork() // suspends, doesn't block main thread
+    textView.text = data          // safe to update UI here
+}
+```
+
+### Dispatchers.IO
+```kotlin
+// Room / Retrofit / File operations
+viewModelScope.launch(Dispatchers.IO) {
+    val users = userDao.getAllUsers()  // blocking DB call is OK here
+    _uiState.postValue(users)
+}
+```
+
+### Dispatchers.Default
+```kotlin
+// CPU-bound work: filtering, mapping large datasets
+viewModelScope.launch(Dispatchers.Default) {
+    val sorted = largeList.sortedBy { it.timestamp }
+    withContext(Dispatchers.Main) {
+        adapter.submitList(sorted)
+    }
+}
+```
+
+### Switching Dispatchers with withContext
+```kotlin
+// Start on Main, switch to IO, return to Main
+fun loadData() {
+    viewModelScope.launch {
+        // Implicitly on Dispatchers.Main via viewModelScope
+        _isLoading.value = true
+        
+        val result = withContext(Dispatchers.IO) {
+            repository.fetchData()  // runs on IO thread
+        }
+        // Back on Main after withContext returns
+        _data.value = result
+        _isLoading.value = false
+    }
+}
+```
+`withContext` is the idiomatic way to switch dispatchers. It suspends the current coroutine and resumes it on the target dispatcher.
+
+### Repository Best Practice
+Push the dispatcher into the data layer, not the ViewModel:
+```kotlin
+// Repository
+class UserRepository(private val dao: UserDao) {
+    suspend fun getUsers(): List<User> = withContext(Dispatchers.IO) {
+        dao.getAllUsers()
+    }
+}
+
+// ViewModel — no dispatcher needed, just call the suspend fun
+viewModelScope.launch {
+    val users = repository.getUsers()
+    _users.value = users
+}
+```
+
+## Common Mistakes
+- Calling `Dispatchers.IO` work on the Main thread without `withContext` (causes ANR).
+- Using `Dispatchers.Default` for I/O — it has limited threads and will starve.
+- Hardcoding dispatchers in production code instead of injecting them (makes testing hard).
+- Using `GlobalScope` instead of `viewModelScope` or `lifecycleScope` (leaks coroutines).
+
+## Follow-up Questions
+- **Q:** How do you test code that uses dispatchers?  
+  **A:** Inject a `CoroutineDispatcher` and replace it with `StandardTestDispatcher` or `UnconfinedTestDispatcher` in tests using `kotlinx-coroutines-test`.
+- **Q:** What's the difference between `launch` and `async`?  
+  **A:** `launch` fires-and-forgets; `async` returns a `Deferred<T>` that you can `await()` to get a result.
