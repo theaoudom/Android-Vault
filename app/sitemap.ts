@@ -1,10 +1,10 @@
 import { MetadataRoute } from 'next'
 import { getAllQuestions } from '@/lib/content'
- 
+
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = 'https://androidvault.example.com'
+  const baseUrl = 'https://android-vault.vercel.app'
   const questions = getAllQuestions()
-  
+
   // Base routes
   const routes = [
     {
