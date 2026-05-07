@@ -14,18 +14,18 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://androidvault.example.com"),
+  metadataBase: new URL("https://android-vault.vercel.app"),
   title: "Android Vault | Premium Interview Prep",
   description: "The ultimate knowledge base and premium interview questions for modern Android Engineers. Master architecture, Compose, security, and more.",
   keywords: [
-    "Android", "Interview", "Questions", "Kotlin", 
+    "Android", "Interview", "Questions", "Kotlin",
     "Jetpack Compose", "Clean Architecture", "Coroutines", "FCM"
   ],
   authors: [{ name: "Android Vault Team" }],
   openGraph: {
     title: "Android Vault | Premium Interview Prep",
     description: "Master modern Android development with premium interview questions and deep-dive lessons.",
-    url: "https://androidvault.example.com",
+    url: "https://android-vault.vercel.app",
     siteName: "Android Vault",
     locale: "en_US",
     type: "website",
