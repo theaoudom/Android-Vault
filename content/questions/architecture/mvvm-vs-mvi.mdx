@@ -1,0 +1,315 @@
+---
+
+title: "MVVM vs MVI: What is the difference and when to use which?"
+slug: "mvvm-vs-mvi"
+category: "architecture"
+difficulty: "senior"
+tags: ["mvvm", "mvi", "architecture", "viewmodel", "state-management", "udf"]
+lastUpdated: "2026-05-07"
+-------------------------
+
+## Quick Interview Answer
+
+Both **MVVM** (Model-View-ViewModel) and **MVI** (Model-View-Intent) are popular UI architecture patterns in modern Android development. In Android apps, both are commonly implemented using Jetpack ViewModel.
+
+The core difference is how they manage **UI State** and **data flow**.
+
+* **MVVM** often uses multiple observable streams and the View directly calls functions on the ViewModel.
+* **MVI** enforces a strict **Unidirectional Data Flow (UDF)** where the UI sends Intents (Events/Actions), and the ViewModel produces a single immutable state representing the entire screen.
+
+MVI strongly encourages immutable state updates, where every state change creates a new state object instead of mutating existing values.
+
+---
+
+# Deep Explanation
+
+As applications grow more complex, managing UI state becomes one of the biggest sources of bugs.
+
+MVI became popular because it helps solve complex state synchronization problems often encountered in large-scale MVVM implementations.
+
+---
+
+## 1. State Management (Multiple Streams vs Single Source of Truth)
+
+### MVVM (Standard)
+
+State is often distributed across multiple observable properties.
+
+Example:
+
+```kotlin
+val isLoading = MutableStateFlow(false)
+val errorMessage = MutableStateFlow<String?>(null)
+val userData = MutableStateFlow<User?>(null)
+```
+
+This approach is flexible and simple for small screens.
+
+However, as complexity grows, managing relationships between multiple states can become difficult and may accidentally create inconsistent UI states.
+
+---
+
+### MVI
+
+MVI uses a **Single Source of Truth**.
+
+The ViewModel exposes exactly one `StateFlow<ViewState>`.
+
+```kotlin
+data class MainState(
+    val isLoading: Boolean = false,
+    val user: User? = null,
+    val error: String? = null
+)
+```
+
+The UI simply renders itself based on this one immutable state object.
+
+This makes state transitions much more predictable.
+
+---
+
+## 2. Communication Style (Methods vs Intents)
+
+### MVVM
+
+The View directly calls functions on the ViewModel.
+
+```kotlin
+button.setOnClickListener {
+    viewModel.loadData()
+}
+```
+
+This is straightforward and easy to understand.
+
+---
+
+### MVI
+
+The View does not call arbitrary methods.
+
+Instead, it sends **Intents** (sometimes called Actions or Events).
+
+```kotlin
+button.setOnClickListener {
+    viewModel.processIntent(MainIntent.LoadUser)
+}
+```
+
+Example Intent definition:
+
+```kotlin
+sealed class MainIntent {
+    object LoadUser : MainIntent()
+    data class UpdateName(val name: String) : MainIntent()
+}
+```
+
+This creates a strict event pipeline:
+
+```text
+Intent -> ViewModel/Reducer -> New State -> UI
+```
+
+Because every interaction passes through one pipeline, debugging and analytics tracking become much easier.
+
+---
+
+## 3. Reducer Concept in MVI
+
+MVI borrows heavily from Redux and functional reactive programming concepts.
+
+When an Intent arrives:
+
+* The current state is read
+* The Intent is processed
+* A new immutable state is produced
+
+Example:
+
+```kotlin
+fun reduce(state: MainState, intent: MainIntent): MainState {
+    return when(intent) {
+
+        MainIntent.LoadUser -> {
+            state.copy(isLoading = true)
+        }
+
+        is MainIntent.UpdateName -> {
+            state.copy(
+                user = state.user?.copy(name = intent.name)
+            )
+        }
+    }
+}
+```
+
+This predictable state transition system is one of the biggest strengths of MVI.
+
+---
+
+## 4. One-Time Events (Effects / Side Effects)
+
+One-time events should usually not live inside persistent UI state.
+
+Examples:
+
+* Navigation
+* Snackbar
+* Toast
+* Dialog triggers
+
+In MVI, these are commonly handled as **Effects** (also called Side Effects).
+
+```kotlin
+sealed class MainEffect {
+    data object NavigateToHome : MainEffect()
+    data class ShowError(val message: String) : MainEffect()
+}
+```
+
+This separation helps avoid issues like:
+
+* Snackbar showing again after screen rotation
+* Navigation triggering twice
+* Duplicate UI events after recomposition
+
+---
+
+## 5. Boilerplate Code
+
+### MVVM
+
+* Lower boilerplate
+* Faster development
+* Easier onboarding
+* Great for simple and medium-complexity apps
+
+---
+
+### MVI
+
+Usually requires:
+
+* Intent classes
+* State classes
+* Effect classes
+* Reducer logic
+* Event processing pipeline
+
+This adds more structure but also increases boilerplate.
+
+For small applications, strict MVI can sometimes feel overengineered.
+
+---
+
+## 6. Debugging and Predictability
+
+### MVVM
+
+Debugging can become difficult when:
+
+* Multiple streams update simultaneously
+* Race conditions occur
+* Different states become unsynchronized
+
+---
+
+### MVI
+
+MVI is extremely predictable.
+
+Because state is immutable and every transition happens through explicit Intents, developers can log:
+
+```text
+[Intent] -> [Old State] -> [New State]
+```
+
+This makes reproducing bugs significantly easier.
+
+---
+
+## 7. Jetpack Compose Compatibility
+
+Jetpack Compose works exceptionally well with MVI because Compose is designed around immutable state and automatic recomposition from a single observable source of truth.
+
+MVI naturally aligns with:
+
+* StateFlow
+* Immutable state
+* Unidirectional Data Flow
+* Declarative UI rendering
+
+This is why many modern Compose architectures borrow ideas from MVI.
+
+---
+
+# Modern Android Practice
+
+In real-world Android projects, many teams use a hybrid approach:
+
+* MVVM with a single `UiState`
+* Unidirectional Data Flow (UDF)
+* Event/Intent handling
+* Kotlin `StateFlow`
+
+This provides most benefits of MVI without introducing the full complexity and boilerplate of a strict Redux-style architecture.
+
+This hybrid approach is currently one of the most common patterns in modern Compose applications.
+
+---
+
+# Summary: Which Should You Choose?
+
+## Use MVVM when:
+
+* Building small or medium apps
+* Fast development matters
+* Business logic is relatively simple
+* You want lower boilerplate
+* The team is beginner-to-intermediate level
+
+Examples:
+
+* Delivery app
+* CRUD dashboard
+* Portfolio app
+* Booking system
+
+---
+
+## Use MVI when:
+
+* UI state is highly complex
+* Many user interactions happen simultaneously
+* Predictability is critical
+* The app uses realtime updates
+* Multiple developers work on the same feature modules
+
+Examples:
+
+* Chat application
+* Finance dashboard
+* Media editor
+* Trading app
+* Complex shopping cart system
+
+---
+
+# Final Recommendation
+
+For most modern Android Compose applications:
+
+```text
+MVVM + Single UiState + UDF + Event handling
+```
+
+is usually the best balance between:
+
+* Scalability
+* Simplicity
+* Developer productivity
+* Maintainability
+
+You typically do not need a fully strict Redux-style MVI architecture unless the application becomes extremely state-heavy or highly interactive.
