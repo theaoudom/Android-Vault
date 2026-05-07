@@ -1,0 +1,104 @@
+---
+title: "What are the 4 main principles of Object-Oriented Programming (OOP)?"
+slug: "oop-principles"
+category: "core"
+difficulty: "junior"
+tags: ["oop", "kotlin", "java", "interview", "fundamentals"]
+lastUpdated: "2026-05-07"
+---
+
+## Quick Interview Answer
+
+The four main principles of Object-Oriented Programming are:
+1. **Encapsulation:** Bundling data (variables) and methods that operate on the data into a single unit (class), and restricting direct access to some of the object's components (using access modifiers like `private`).
+2. **Abstraction:** Hiding complex implementation details and showing only the essential features of the object (using `interface` or `abstract class`).
+3. **Inheritance:** A mechanism where a new class derives properties and behaviors from an existing class, promoting code reuse.
+4. **Polymorphism:** The ability of different objects to respond in their own way to the same method call (via method overriding or method overloading).
+
+## Deep Explanation
+
+Here is a deeper look into each principle with Kotlin examples.
+
+### 1. Encapsulation
+
+Encapsulation protects an object's internal state. You hide variables and only expose them through public getter/setter methods (or properties in Kotlin).
+
+```kotlin
+class BankAccount {
+    // Private: Cannot be accessed from outside this class
+    private var balance: Double = 0.0
+
+    // Public method to modify the state safely
+    fun deposit(amount: Double) {
+        if (amount > 0) balance += amount
+    }
+
+    // Public method to read the state
+    fun getBalance(): Double = balance
+}
+```
+
+### 2. Abstraction
+
+Abstraction reduces complexity by hiding how things work under the hood. You define *what* an object can do, but not *how* it does it.
+
+```kotlin
+// Interface defines the contract (the "what")
+interface PaymentProcessor {
+    fun processPayment(amount: Double)
+}
+
+// Concrete class handles the implementation (the "how")
+class StripePaymentProcessor : PaymentProcessor {
+    override fun processPayment(amount: Double) {
+        // Complex Stripe API logic hidden here
+        println("Processing $amount via Stripe")
+    }
+}
+```
+
+### 3. Inheritance
+
+Inheritance allows you to create a parent-child relationship between classes. The child class inherits the non-private members of the parent. In Kotlin, classes are `final` by default, so you must use the `open` keyword to allow inheritance.
+
+```kotlin
+// Parent class
+open class Animal(val name: String) {
+    open fun makeSound() {
+        println("Generic animal sound")
+    }
+}
+
+// Child class
+class Dog(name: String) : Animal(name) {
+    // Reusing the 'name' property from parent
+    override fun makeSound() {
+        println("Bark!")
+    }
+}
+```
+
+### 4. Polymorphism
+
+Polymorphism means "many forms." It allows you to treat objects of different classes uniformly if they share the same superclass or interface.
+There are two types:
+*   **Compile-time (Overloading):** Multiple functions with the same name but different parameters.
+*   **Run-time (Overriding):** A child class provides a specific implementation of a method defined in its parent.
+
+```kotlin
+// Run-time Polymorphism Example
+fun playSound(animal: Animal) {
+    // The exact sound depends on the actual object type passed in
+    animal.makeSound() 
+}
+
+val myDog = Dog("Buddy")
+playSound(myDog) // Prints "Bark!"
+```
+
+## Common Interview Follow-ups
+
+*   **Q: What is the difference between an Abstract Class and an Interface in Kotlin?**
+    *   **A:** A class can implement multiple interfaces, but it can only inherit from one abstract class. Interfaces cannot store state (backing fields), while abstract classes can have state (instance variables).
+*   **Q: Favor Composition over Inheritance. What does this mean?**
+    *   **A:** Inheritance can lead to rigid hierarchies and the "fragile base class" problem. Composition means putting objects together to get the desired functionality (using instances of other classes) rather than extending a parent class.
