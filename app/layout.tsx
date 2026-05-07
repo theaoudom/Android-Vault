@@ -35,6 +35,9 @@ export const metadata: Metadata = {
     title: "Android Vault | Premium Interview Prep",
     description: "Master modern Android development with premium interview questions and deep-dive lessons.",
   },
+  verification: {
+    google: "-xtWlMGPrW3Qh8lJolhjKGzPL8ctNtylEsui9p-EJnc",
+  },
   robots: {
     index: true,
     follow: true,
