@@ -1,0 +1,47 @@
+---
+title: "MVVM vs MVP: What is the difference and which is better?"
+slug: "mvvm-vs-mvp"
+category: "architecture"
+difficulty: "mid"
+tags: ["mvvm", "mvp", "architecture", "viewmodel", "presenter", "design-patterns"]
+lastUpdated: "2026-05-07"
+---
+
+## Quick Interview Answer
+
+Both **MVVM** (Model-View-ViewModel) and **MVP** (Model-View-Presenter) aim to separate UI (View) from business logic (Model). The key difference is how they update the View.
+**MVVM** uses an **event-driven** approach where the ViewModel exposes data streams (LiveData/StateFlow) and the View observes them without the ViewModel knowing about the View. 
+**MVP** uses a **command-driven** approach where the Presenter holds a direct reference to the View's interface and explicitly tells it what to display. MVVM is currently Google's recommended architecture.
+
+## Deep Explanation
+
+While both patterns aim for cleaner, more testable code, their approaches to coupling and state management differ significantly.
+
+### 1. Paradigm: Observation vs Direct Command
+
+*   **MVVM (Reactive):** Relies heavily on **data binding** or reactive streams (like `LiveData`, `StateFlow`, or Compose State). The View *observes* the ViewModel. When the ViewModel updates its state, the View updates automatically. The ViewModel acts as a state container.
+*   **MVP (Imperative):** Relies on a **direct, interface-based contract**. The Presenter explicitly commands the View to change. For example, the Presenter calls `view.showLoading()` or `view.updateList()`.
+
+### 2. Coupling and References
+
+*   **MVVM (Loose Coupling):** The ViewModel has **zero knowledge** of the View. It does not hold any references to Activity, Fragment, or View interfaces. This prevents memory leaks and allows a one-to-many relationship (one ViewModel can be observed by multiple Views).
+*   **MVP (Tight Coupling):** The Presenter and the View have a strict 1-to-1 relationship. The Presenter holds a reference to the View's interface, which creates tighter coupling.
+
+### 3. Handling Android Configuration Changes
+
+*   **MVVM:** Highly optimized for Android lifecycle. By using Jetpack's `ViewModel` class, the ViewModel automatically survives configuration changes like screen rotations. The new Activity/Fragment simply re-subscribes to the existing ViewModel's data streams, and the UI state is instantly restored.
+*   **MVP:** Presenters do not survive configuration changes by default. If the user rotates the screen, the Activity dies, the Presenter usually dies with it, and you have to manually handle saving state in `onSaveInstanceState` and recreating the Presenter.
+
+### 4. Boilerplate Code
+
+*   **MVVM:** Requires less boilerplate, especially with Kotlin Coroutines/Flows or Jetpack Compose. However, it requires a steeper learning curve to understand reactive programming concepts.
+*   **MVP:** Requires high boilerplate. You have to define explicit interfaces for every View and Presenter (Contract classes), and write explicit methods for every possible UI interaction, resulting in verbose code.
+
+### 5. Unit Testing
+
+*   **MVVM:** Extremely easy to unit test. Since there's no reference to the View, you can just call functions on the ViewModel and assert its exposed state (`StateFlow`/`LiveData`) updates to the correct values.
+*   **MVP:** Also easy to test because the View is an interface, which you can mock. However, you have to verify that the Presenter called specific methods on the mock View (e.g., `verify(mockView).showError()`), which can be slightly more verbose than observing state changes.
+
+## Summary
+
+Google officially recommends **MVVM** (or MVI) for modern Android development. MVVM naturally complements modern declarative UIs like Jetpack Compose. **MVP** is largely considered a legacy architecture today and is mostly encountered when maintaining older Java codebases.
