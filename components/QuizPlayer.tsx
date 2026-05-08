@@ -33,6 +33,15 @@ function shuffleOptions(question: QuizQuestion): {
   return { shuffledOptions, correctShuffledIndex };
 }
 
+function shuffleArray<T>(array: T[]): T[] {
+  const next = [...array];
+  for (let i = next.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [next[i], next[j]] = [next[j], next[i]];
+  }
+  return next;
+}
+
 export default function QuizPlayer({ category, label, questions }: QuizPlayerProps) {
   // Use state for shuffled questions to avoid hydration mismatch
   const [shuffledQuestions, setShuffledQuestions] = useState<QuizQuestion[]>(questions);
@@ -40,13 +49,12 @@ export default function QuizPlayer({ category, label, questions }: QuizPlayerPro
 
   useEffect(() => {
     setIsMounted(true);
-    // Shuffle options once on client mount
-    setShuffledQuestions(
-      questions.map((q) => {
-        const { shuffledOptions, correctShuffledIndex } = shuffleOptions(q);
-        return { ...q, options: shuffledOptions, correctIndex: correctShuffledIndex };
-      })
-    );
+    // Shuffle questions and their options once on client mount
+    const randomized = shuffleArray(questions).map((q) => {
+      const { shuffledOptions, correctShuffledIndex } = shuffleOptions(q);
+      return { ...q, options: shuffledOptions, correctIndex: correctShuffledIndex };
+    });
+    setShuffledQuestions(randomized);
   }, [questions]);
 
   const [currentIndex, setCurrentIndex] = useState(0);
