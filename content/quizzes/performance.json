@@ -1,0 +1,87 @@
+{
+  "category": "performance",
+  "label": "Performance",
+  "icon": "⚡",
+  "questions": [
+    {
+      "id": 1,
+      "question": "Which Coroutine Dispatcher should you use for network calls and database operations?",
+      "options": ["Dispatchers.Main", "Dispatchers.IO", "Dispatchers.Default"],
+      "correctIndex": 1,
+      "explanation": "Dispatchers.IO is optimized for I/O-bound work like network calls, database reads/writes, and file operations. It uses a shared pool of 64+ threads.",
+      "relatedSlug": "coroutine-dispatchers"
+    },
+    {
+      "id": 2,
+      "question": "What happens if you run a long network call on Dispatchers.Main?",
+      "options": ["It runs faster", "It causes an ANR (Application Not Responding)", "Nothing, Dispatchers.Main handles it automatically"],
+      "correctIndex": 1,
+      "explanation": "Running blocking I/O on Dispatchers.Main blocks the UI thread, causing an ANR (Application Not Responding) dialog after ~5 seconds. Always use Dispatchers.IO for such operations.",
+      "relatedSlug": "coroutine-dispatchers"
+    },
+    {
+      "id": 3,
+      "question": "What is the idiomatic way to switch Coroutine dispatchers in the middle of a function?",
+      "options": ["Create a new coroutine with launch()", "Use withContext()", "Use Thread.sleep()"],
+      "correctIndex": 1,
+      "explanation": "withContext() is the idiomatic way to switch dispatchers. It suspends the current coroutine and resumes it on the target dispatcher, then returns to the original dispatcher.",
+      "relatedSlug": "coroutine-dispatchers"
+    },
+    {
+      "id": 4,
+      "question": "Which Dispatcher is best for CPU-intensive work like sorting large lists or parsing JSON?",
+      "options": ["Dispatchers.IO", "Dispatchers.Default", "Dispatchers.Main"],
+      "correctIndex": 1,
+      "explanation": "Dispatchers.Default is optimized for CPU-intensive computation. It uses a thread pool sized to the number of CPU cores. Using IO for CPU work would starve its limited thread pool.",
+      "relatedSlug": "coroutine-dispatchers"
+    },
+    {
+      "id": 5,
+      "question": "Why should you avoid using GlobalScope in production Android code?",
+      "options": ["It's slower than viewModelScope", "It leaks coroutines because they aren't tied to any lifecycle", "It doesn't support Dispatchers.IO"],
+      "correctIndex": 1,
+      "explanation": "GlobalScope launches coroutines that aren't tied to any lifecycle. They continue running even after the Activity/Fragment is destroyed, causing memory leaks and wasted resources.",
+      "relatedSlug": "coroutine-dispatchers"
+    },
+    {
+      "id": 6,
+      "question": "Where should the Dispatcher be specified for best practice — ViewModel or Repository?",
+      "options": ["ViewModel", "Repository (Data layer)", "Activity/Fragment"],
+      "correctIndex": 1,
+      "explanation": "Push the dispatcher into the data layer (Repository). The Repository wraps I/O work with withContext(Dispatchers.IO). The ViewModel just calls suspend functions without worrying about threads.",
+      "relatedSlug": "coroutine-dispatchers"
+    },
+    {
+      "id": 7,
+      "question": "What is the difference between launch and async in Kotlin Coroutines?",
+      "options": ["They are identical", "launch fires-and-forgets; async returns a Deferred<T> you can await()", "async is synchronous, launch is asynchronous"],
+      "correctIndex": 1,
+      "explanation": "launch is fire-and-forget — it returns a Job. async returns a Deferred<T> that you can call await() on to get the result. Use async when you need a return value.",
+      "relatedSlug": "coroutine-dispatchers"
+    },
+    {
+      "id": 8,
+      "question": "How do you test code that uses specific dispatchers?",
+      "options": ["You can't test coroutine code", "Inject dispatchers and replace with StandardTestDispatcher in tests", "Run tests on the Main thread"],
+      "correctIndex": 1,
+      "explanation": "Inject a CoroutineDispatcher as a dependency and replace it with StandardTestDispatcher or UnconfinedTestDispatcher from kotlinx-coroutines-test during testing.",
+      "relatedSlug": "coroutine-dispatchers"
+    },
+    {
+      "id": 9,
+      "question": "What scope should you use for coroutines in a ViewModel?",
+      "options": ["GlobalScope", "viewModelScope", "runBlocking"],
+      "correctIndex": 1,
+      "explanation": "viewModelScope is tied to the ViewModel's lifecycle and automatically cancels all coroutines when the ViewModel is cleared. This prevents memory leaks.",
+      "relatedSlug": "coroutine-dispatchers"
+    },
+    {
+      "id": 10,
+      "question": "What makes an app 'lightweight' in terms of performance?",
+      "options": ["Using as many libraries as possible", "Minimizing memory usage, optimizing layouts, and reducing unnecessary work", "Having a small APK icon"],
+      "correctIndex": 1,
+      "explanation": "A lightweight app minimizes memory usage, optimizes layout hierarchies, avoids overdraw, reduces unnecessary background work, and uses efficient data structures.",
+      "relatedSlug": "make-app-lightweight"
+    }
+  ]
+}

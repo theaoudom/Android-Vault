@@ -1,0 +1,87 @@
+{
+  "category": "architecture",
+  "label": "Architecture",
+  "icon": "🏗️",
+  "questions": [
+    {
+      "id": 1,
+      "question": "In Clean Architecture, which layer should contain the Repository interface?",
+      "options": ["Data Layer", "Domain Layer", "Presentation Layer"],
+      "correctIndex": 1,
+      "explanation": "The Repository interface must live in the Domain layer. The Data layer provides the implementation. This follows the Dependency Inversion Principle — dependencies point inward.",
+      "relatedSlug": "clean-architecture"
+    },
+    {
+      "id": 2,
+      "question": "What is the core rule of Clean Architecture regarding dependencies?",
+      "options": ["All layers can depend on each other", "Dependencies only point inward", "The Data layer controls all other layers"],
+      "correctIndex": 1,
+      "explanation": "The core rule is that dependencies only point inward. The Domain layer knows nothing about Android, databases, or UI. This makes the business logic fully testable.",
+      "relatedSlug": "clean-architecture"
+    },
+    {
+      "id": 3,
+      "question": "How does MVVM update the View compared to MVP?",
+      "options": ["The ViewModel directly calls View methods", "The View observes data streams from the ViewModel", "The Model pushes updates to the View"],
+      "correctIndex": 1,
+      "explanation": "MVVM uses an event-driven approach — the ViewModel exposes data streams (LiveData/StateFlow) and the View observes them. In MVP, the Presenter directly commands the View via an interface.",
+      "relatedSlug": "mvvm-vs-mvp"
+    },
+    {
+      "id": 4,
+      "question": "What is the main advantage of MVI over standard MVVM?",
+      "options": ["Less boilerplate code", "Strict Unidirectional Data Flow with a single immutable state", "Faster compilation times"],
+      "correctIndex": 1,
+      "explanation": "MVI enforces a strict Unidirectional Data Flow where the UI sends Intents, and the ViewModel produces a single immutable state. This makes state transitions predictable and debugging easier.",
+      "relatedSlug": "mvvm-vs-mvi"
+    },
+    {
+      "id": 5,
+      "question": "What is a UseCase in Clean Architecture?",
+      "options": ["A class that manages the database", "A single-responsibility class that orchestrates business logic", "A utility class for UI formatting"],
+      "correctIndex": 1,
+      "explanation": "A UseCase is a single-responsibility class in the Domain layer that orchestrates business logic. Each UseCase does one thing and is easily testable without any Android framework.",
+      "relatedSlug": "clean-architecture"
+    },
+    {
+      "id": 6,
+      "question": "Why is MVP considered a legacy architecture for Android?",
+      "options": ["It doesn't work with Kotlin", "The Presenter doesn't survive configuration changes and creates tighter coupling", "It requires too many dependencies"],
+      "correctIndex": 1,
+      "explanation": "MVP Presenters don't survive configuration changes by default and hold direct View references (tight coupling). MVVM with Jetpack ViewModel handles both automatically.",
+      "relatedSlug": "mvvm-vs-mvp"
+    },
+    {
+      "id": 7,
+      "question": "In MVI, what are 'Effects' (Side Effects) used for?",
+      "options": ["Database migrations", "One-time events like navigation, snackbar, or toast", "Styling UI components"],
+      "correctIndex": 1,
+      "explanation": "Effects handle one-time events that should not live in persistent UI state — like navigation, snackbar, toast, and dialog triggers. This prevents issues like events replaying after rotation.",
+      "relatedSlug": "mvvm-vs-mvi"
+    },
+    {
+      "id": 8,
+      "question": "Which layer in Clean Architecture should have ZERO Android imports?",
+      "options": ["Presentation Layer", "Data Layer", "Domain Layer"],
+      "correctIndex": 2,
+      "explanation": "The Domain layer is pure Kotlin — no Android imports like Context, Log, or framework classes. This makes it fully portable and testable without an Android environment.",
+      "relatedSlug": "clean-architecture"
+    },
+    {
+      "id": 9,
+      "question": "What is the recommended modern Android architecture pattern?",
+      "options": ["MVP with manual state management", "MVVM + Single UiState + UDF", "MVC with AsyncTask"],
+      "correctIndex": 1,
+      "explanation": "The recommended approach is MVVM with a single UiState and Unidirectional Data Flow (UDF). This combines the simplicity of MVVM with the predictability benefits of MVI.",
+      "relatedSlug": "mvvm-vs-mvi"
+    },
+    {
+      "id": 10,
+      "question": "How does Hilt fit into Clean Architecture?",
+      "options": ["It replaces the Domain layer", "It provides dependency injection across layers using @Binds and @HiltViewModel", "It manages the database schema"],
+      "correctIndex": 1,
+      "explanation": "Hilt provides DI across all layers. @Binds maps repository interfaces to implementations, and @HiltViewModel injects UseCases into ViewModels automatically.",
+      "relatedSlug": "clean-architecture"
+    }
+  ]
+}

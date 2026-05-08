@@ -1,0 +1,87 @@
+{
+  "category": "notifications",
+  "label": "Notifications",
+  "icon": "🔔",
+  "questions": [
+    {
+      "id": 1,
+      "question": "What happens when an FCM message arrives and the app is in the background?",
+      "options": ["onMessageReceived() fires", "FCM automatically builds and shows the notification", "The message is dropped"],
+      "correctIndex": 1,
+      "explanation": "When the app is in the background or killed, FCM automatically displays the notification if the message contains a 'notification' payload. For data-only payloads, onMessageReceived() fires even in the background.",
+      "relatedSlug": "fcm-push-notifications"
+    },
+    {
+      "id": 2,
+      "question": "Starting from Android 8 (API 26), what is required to show notifications?",
+      "options": ["A foreground service", "A NotificationChannel", "A BroadcastReceiver"],
+      "correctIndex": 1,
+      "explanation": "Android 8+ requires notifications to be assigned to a NotificationChannel. Without one, notifications will silently fail. Channels let users control notification behavior per category.",
+      "relatedSlug": "notification-config-android"
+    },
+    {
+      "id": 3,
+      "question": "On Android 13+, what new requirement was added for notifications?",
+      "options": ["Notifications must include images", "You must request the POST_NOTIFICATIONS runtime permission", "All notifications must use a foreground service"],
+      "correctIndex": 1,
+      "explanation": "Android 13 (API 33) introduced the POST_NOTIFICATIONS runtime permission. Without requesting and being granted this permission, your notifications won't be shown.",
+      "relatedSlug": "notification-config-android"
+    },
+    {
+      "id": 4,
+      "question": "Which FCM payload type gives you full control over notification display in both foreground and background?",
+      "options": ["notification payload", "data-only payload", "Both combined"],
+      "correctIndex": 1,
+      "explanation": "Data-only payloads trigger onMessageReceived() in both foreground AND background, giving you full control to build custom notifications. The 'notification' payload is auto-handled in background.",
+      "relatedSlug": "fcm-push-notifications"
+    },
+    {
+      "id": 5,
+      "question": "Why does a notification sometimes not pop up as a heads-up display?",
+      "options": ["The app is not installed correctly", "The NotificationChannel importance is too low", "Heads-up is not supported on Android"],
+      "correctIndex": 1,
+      "explanation": "Heads-up notifications require IMPORTANCE_HIGH on the NotificationChannel. If the channel is set to DEFAULT, LOW, or MIN, the notification will appear silently in the status bar.",
+      "relatedSlug": "notification-config-android"
+    },
+    {
+      "id": 6,
+      "question": "What does the onNewToken() callback in FirebaseMessagingService do?",
+      "options": ["It refreshes the user's auth token", "It fires when a new FCM device token is generated, so you can sync it with your server", "It creates a new notification channel"],
+      "correctIndex": 1,
+      "explanation": "onNewToken() is called when FCM generates a new device registration token (first run or token refresh). You must send this token to your server to target this device for push notifications.",
+      "relatedSlug": "fcm-push-notifications"
+    },
+    {
+      "id": 7,
+      "question": "Which PendingIntent flag is recommended for most notification click actions?",
+      "options": ["FLAG_MUTABLE", "FLAG_IMMUTABLE", "FLAG_CANCEL_CURRENT"],
+      "correctIndex": 1,
+      "explanation": "FLAG_IMMUTABLE is recommended for most notification PendingIntents for security. Use FLAG_MUTABLE only when you specifically need to modify the PendingIntent later (e.g., inline reply).",
+      "relatedSlug": "notification-config-android"
+    },
+    {
+      "id": 8,
+      "question": "What happens to the FCM token after a factory reset?",
+      "options": ["The same token is reused", "A new token is generated and onNewToken() fires", "FCM stops working permanently"],
+      "correctIndex": 1,
+      "explanation": "After a factory reset, a completely new FCM token is generated. onNewToken() fires and you must sync the new token with your server. The old token becomes invalid.",
+      "relatedSlug": "fcm-push-notifications"
+    },
+    {
+      "id": 9,
+      "question": "How can you send a notification to multiple devices subscribed to a topic?",
+      "options": ["Send individual messages to each device token", "Use FirebaseMessaging.subscribeToTopic() and target the topic", "Broadcast using a BroadcastReceiver"],
+      "correctIndex": 1,
+      "explanation": "Devices subscribe to topics using FirebaseMessaging.getInstance().subscribeToTopic(). Your server then targets '/topics/topic_name' to send notifications to all subscribed devices at once.",
+      "relatedSlug": "fcm-push-notifications"
+    },
+    {
+      "id": 10,
+      "question": "Why might clicking a notification sometimes open the wrong screen?",
+      "options": ["The device has a bug", "PendingIntent requestCode was reused with FLAG_UPDATE_CURRENT", "The notification channel is misconfigured"],
+      "correctIndex": 1,
+      "explanation": "When multiple notifications share the same PendingIntent requestCode with FLAG_UPDATE_CURRENT, they overwrite each other's intent data. Use unique requestCodes for different notification actions.",
+      "relatedSlug": "notification-config-android"
+    }
+  ]
+}

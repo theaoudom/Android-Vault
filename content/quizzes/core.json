@@ -1,0 +1,87 @@
+{
+  "category": "core",
+  "label": "Core / OOP",
+  "icon": "🧠",
+  "questions": [
+    {
+      "id": 1,
+      "question": "Which OOP principle involves hiding complex implementation details and showing only essential features?",
+      "options": ["Encapsulation", "Abstraction", "Polymorphism"],
+      "correctIndex": 1,
+      "explanation": "Abstraction hides complex implementation details and shows only the essential features. It's achieved using interfaces or abstract classes to define 'what' something does, not 'how'.",
+      "relatedSlug": "oop-principles"
+    },
+    {
+      "id": 2,
+      "question": "In Kotlin, classes are _____ by default and require the _____ keyword to allow inheritance.",
+      "options": ["open, sealed", "final, open", "abstract, override"],
+      "correctIndex": 1,
+      "explanation": "Kotlin classes are 'final' by default — they cannot be extended. You must explicitly mark a class as 'open' to allow other classes to inherit from it.",
+      "relatedSlug": "oop-principles"
+    },
+    {
+      "id": 3,
+      "question": "What is Polymorphism?",
+      "options": ["Hiding data within a class", "The ability of different objects to respond in their own way to the same method call", "Creating multiple instances of the same class"],
+      "correctIndex": 1,
+      "explanation": "Polymorphism means 'many forms' — it allows different objects to respond to the same method call in their own way, via method overriding (runtime) or overloading (compile-time).",
+      "relatedSlug": "oop-principles"
+    },
+    {
+      "id": 4,
+      "question": "What does Encapsulation protect?",
+      "options": ["The network layer from attacks", "An object's internal state from external access", "The app from crashes"],
+      "correctIndex": 1,
+      "explanation": "Encapsulation protects an object's internal state by making variables private and exposing them only through controlled public methods (getters/setters).",
+      "relatedSlug": "oop-principles"
+    },
+    {
+      "id": 5,
+      "question": "What does 'Favor Composition over Inheritance' mean?",
+      "options": ["Never use classes", "Use object instances to get functionality instead of extending parent classes", "Always use abstract classes"],
+      "correctIndex": 1,
+      "explanation": "It means building functionality by combining (composing) objects rather than relying on class inheritance hierarchies, which can become rigid and fragile.",
+      "relatedSlug": "oop-principles"
+    },
+    {
+      "id": 6,
+      "question": "What is the difference between an Abstract Class and an Interface in Kotlin?",
+      "options": ["They are identical", "A class can implement multiple interfaces but extend only one abstract class", "Interfaces can store state but abstract classes cannot"],
+      "correctIndex": 1,
+      "explanation": "A class can implement multiple interfaces but can only inherit from one abstract class. Interfaces cannot store state (backing fields), while abstract classes can.",
+      "relatedSlug": "oop-principles"
+    },
+    {
+      "id": 7,
+      "question": "Which type of Polymorphism is achieved through method overriding?",
+      "options": ["Compile-time polymorphism", "Runtime polymorphism", "Static polymorphism"],
+      "correctIndex": 1,
+      "explanation": "Runtime (or dynamic) polymorphism is achieved through method overriding — the child class provides a specific implementation of a method defined in its parent class.",
+      "relatedSlug": "oop-principles"
+    },
+    {
+      "id": 8,
+      "question": "In Kotlin, which keyword is used to implement an interface?",
+      "options": ["implements", "extends", "A colon (:)"],
+      "correctIndex": 2,
+      "explanation": "In Kotlin, both class inheritance and interface implementation use the colon syntax (e.g., 'class Dog : Animal, Runnable'). There are no 'extends' or 'implements' keywords.",
+      "relatedSlug": "oop-principles"
+    },
+    {
+      "id": 9,
+      "question": "What is method overloading?",
+      "options": ["Replacing a parent method in a child class", "Having multiple functions with the same name but different parameters", "Making a method run faster"],
+      "correctIndex": 1,
+      "explanation": "Method overloading (compile-time polymorphism) is having multiple functions with the same name but different parameter types or counts within the same class.",
+      "relatedSlug": "oop-principles"
+    },
+    {
+      "id": 10,
+      "question": "Which OOP principle promotes code reuse through parent-child class relationships?",
+      "options": ["Abstraction", "Encapsulation", "Inheritance"],
+      "correctIndex": 2,
+      "explanation": "Inheritance allows a new class to derive properties and behaviors from an existing class. The child class inherits non-private members of the parent, promoting code reuse.",
+      "relatedSlug": "oop-principles"
+    }
+  ]
+}

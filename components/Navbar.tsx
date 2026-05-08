@@ -10,6 +10,7 @@ export default function Navbar() {
     { href: "/", label: "Home" },
     { href: "/questions", label: "Questions" },
     { href: "/categories", label: "Categories" },
+    { href: "/quiz", label: "Quiz" },
   ];
 
   return (
@@ -41,7 +42,7 @@ export default function Navbar() {
         {/* Nav Links */}
         <nav className="flex items-center gap-1 text-sm font-medium">
           {navLinks.map((link) => {
-            const isActive = pathname === link.href;
+            const isActive = link.href === "/" ? pathname === "/" : pathname.startsWith(link.href);
             return (
               <Link
                 key={link.href}

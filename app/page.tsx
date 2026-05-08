@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { getAllQuestions } from "@/lib/content";
+import NewFeatureModal from "@/components/NewFeatureModal";
 
 export default function HomePage() {
   const questions = getAllQuestions();
@@ -8,6 +9,7 @@ export default function HomePage() {
 
   return (
     <main className="min-h-screen pb-16">
+      <NewFeatureModal />
       {/* Hero Section */}
       <section className="relative pt-32 pb-20 px-8 flex flex-col items-center justify-center text-center overflow-hidden">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full max-w-3xl opacity-20 pointer-events-none">
@@ -50,6 +52,33 @@ export default function HomePage() {
             <div className="text-4xl font-black text-white mb-2">∞</div>
             <div className="text-sm text-gray-400 font-medium uppercase tracking-wider">Potential</div>
           </div>
+        </div>
+
+        {/* Quiz CTA Section */}
+        <div className="mb-16">
+          <Link
+            href="/quiz"
+            className="block glass-panel rounded-2xl p-8 hover:bg-white/[0.06] transition-all duration-300 group relative overflow-hidden"
+          >
+            <div className="absolute top-0 right-0 w-48 h-48 opacity-10 pointer-events-none">
+              <div className="absolute inset-0 bg-accent blur-[80px] rounded-full"></div>
+            </div>
+            <div className="relative z-10 flex flex-col md:flex-row items-center gap-6">
+              <div className="text-5xl">🧪</div>
+              <div className="flex-1 text-center md:text-left">
+                <h2 className="text-2xl font-bold mb-2 group-hover:text-accent transition-colors">
+                  Test Your Knowledge
+                </h2>
+                <p className="text-gray-400 leading-relaxed">
+                  Take interactive quizzes across {categories.length} categories. Answer 10 multiple-choice questions and get instant feedback with detailed explanations.
+                </p>
+              </div>
+              <div className="glass-panel px-6 py-3 rounded-full font-semibold text-sm group-hover:bg-accent/20 group-hover:border-accent/40 transition-all duration-300 inline-flex items-center gap-2 shrink-0">
+                Start Quiz
+                <span className="group-hover:translate-x-1 transition-transform">→</span>
+              </div>
+            </div>
+          </Link>
         </div>
 
         <div className="grid md:grid-cols-3 gap-12">

@@ -1,0 +1,87 @@
+{
+  "category": "components",
+  "label": "Components & UI",
+  "icon": "📱",
+  "questions": [
+    {
+      "id": 1,
+      "question": "Which lifecycle method is called when an Activity first becomes visible to the user?",
+      "options": ["onCreate()", "onStart()", "onResume()"],
+      "correctIndex": 1,
+      "explanation": "onStart() is called when the Activity becomes visible. onCreate() initializes the Activity but it's not yet visible, and onResume() is when the user can interact with it.",
+      "relatedSlug": "activity-lifecycle"
+    },
+    {
+      "id": 2,
+      "question": "What is the recommended way to survive configuration changes (like screen rotation) in Android?",
+      "options": ["Use onSaveInstanceState for all data", "Use ViewModel", "Add android:configChanges to the manifest"],
+      "correctIndex": 1,
+      "explanation": "ViewModel survives configuration changes automatically and is Google's recommended approach. onSaveInstanceState is for lightweight UI state only, and android:configChanges is discouraged.",
+      "relatedSlug": "activity-lifecycle"
+    },
+    {
+      "id": 3,
+      "question": "What happens to the Activity lifecycle during a screen rotation?",
+      "options": ["Only onPause() and onResume() are called", "The Activity is destroyed and recreated", "Nothing happens if ViewModel is used"],
+      "correctIndex": 1,
+      "explanation": "A screen rotation triggers the full destruction cycle: onPause → onStop → onDestroy → onCreate → onStart → onResume. ViewModel survives this, but the Activity itself is recreated.",
+      "relatedSlug": "activity-lifecycle"
+    },
+    {
+      "id": 4,
+      "question": "What approach does Jetpack Compose use for building UI?",
+      "options": ["Imperative approach", "Declarative approach", "Hybrid approach"],
+      "correctIndex": 1,
+      "explanation": "Jetpack Compose uses a declarative approach — you describe what the UI should look like based on state, and Compose handles updating the screen when state changes.",
+      "relatedSlug": "xml-vs-compose"
+    },
+    {
+      "id": 5,
+      "question": "In Compose, how does the framework know when to update the screen?",
+      "options": ["It polls the data at regular intervals", "It tracks which State objects are read by composables", "The developer manually triggers recomposition"],
+      "correctIndex": 1,
+      "explanation": "Compose uses a specialized State system. During composition, it tracks which State objects are read by which composables. When a State changes, only those specific composables are recomposed.",
+      "relatedSlug": "xml-vs-compose"
+    },
+    {
+      "id": 6,
+      "question": "Which lifecycle method should you use to pause animations and release sensors?",
+      "options": ["onStop()", "onPause()", "onDestroy()"],
+      "correctIndex": 1,
+      "explanation": "onPause() is called when the Activity is partially obscured. It's the right place to pause animations and release sensors, but keep the work fast since it blocks UI.",
+      "relatedSlug": "activity-lifecycle"
+    },
+    {
+      "id": 7,
+      "question": "Can you mix XML layouts and Jetpack Compose in the same app?",
+      "options": ["No, they are completely incompatible", "Yes, using ComposeView and AndroidView", "Only if you use Fragments"],
+      "correctIndex": 1,
+      "explanation": "Yes! You can put a ComposeView inside an XML layout to host Compose content, or use AndroidView inside a Compose layout to host traditional Android Views.",
+      "relatedSlug": "xml-vs-compose"
+    },
+    {
+      "id": 8,
+      "question": "What are the four main Android application components?",
+      "options": ["Activity, Service, BroadcastReceiver, ContentProvider", "Activity, Fragment, ViewModel, Repository", "Activity, Service, Notification, Intent"],
+      "correctIndex": 0,
+      "explanation": "The four fundamental Android components are Activity, Service, BroadcastReceiver, and ContentProvider. Each serves a distinct purpose and has its own lifecycle.",
+      "relatedSlug": "android-components-overview"
+    },
+    {
+      "id": 9,
+      "question": "When does onDestroy() NOT get called?",
+      "options": ["When the user presses the back button", "When the system kills the process to reclaim memory", "When finish() is called"],
+      "correctIndex": 1,
+      "explanation": "When the system kills the process due to memory pressure (process death), onDestroy is not guaranteed to be called. That's why critical state should be saved in onSaveInstanceState.",
+      "relatedSlug": "activity-lifecycle"
+    },
+    {
+      "id": 10,
+      "question": "In XML-based development, what is a common source of bugs related to UI state?",
+      "options": ["Using too many layouts", "State duplication between ViewModel and View", "Not using enough animations"],
+      "correctIndex": 1,
+      "explanation": "In XML, state is often duplicated — the ViewModel holds data, and the View (e.g., TextView) holds its own text state. If they get out of sync, bugs appear. Compose solves this with a single source of truth.",
+      "relatedSlug": "xml-vs-compose"
+    }
+  ]
+}

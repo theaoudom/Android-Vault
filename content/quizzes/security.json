@@ -1,0 +1,87 @@
+{
+  "category": "security",
+  "label": "Security",
+  "icon": "🔒",
+  "questions": [
+    {
+      "id": 1,
+      "question": "Why is using CryptoObject with BiometricPrompt important?",
+      "options": ["It makes the UI look better", "It cryptographically binds authentication to a Keystore key, preventing spoofing", "It speeds up the fingerprint scan"],
+      "correctIndex": 1,
+      "explanation": "Without CryptoObject, biometric auth only gives a boolean 'success' — easily spoofable. CryptoObject ties the auth to an Android Keystore key that can only be unlocked by a real biometric check.",
+      "relatedSlug": "biometric-prompt"
+    },
+    {
+      "id": 2,
+      "question": "Where should sensitive tokens (like JWT) be stored in an Android app?",
+      "options": ["Plain SharedPreferences", "Keystore-backed encrypted storage", "In a static variable in the Application class"],
+      "correctIndex": 1,
+      "explanation": "Tokens should be stored in encrypted storage backed by the Android Keystore. Plain SharedPreferences can be read on rooted devices. Static variables are lost on process death.",
+      "relatedSlug": "make-app-more-secure"
+    },
+    {
+      "id": 3,
+      "question": "What does setInvalidatedByBiometricEnrollment(true) do?",
+      "options": ["It disables biometric authentication", "It invalidates the secret key when new biometric credentials are enrolled", "It allows multiple fingerprints to use the same key"],
+      "correctIndex": 1,
+      "explanation": "It invalidates the secret key when new biometric credentials are enrolled, forcing re-authentication with the device PIN. This prevents a malicious party from adding their fingerprint to access data.",
+      "relatedSlug": "biometric-prompt"
+    },
+    {
+      "id": 4,
+      "question": "What is the difference between BIOMETRIC_STRONG and BIOMETRIC_WEAK?",
+      "options": ["STRONG is faster, WEAK is slower", "STRONG (Class 3) is required for CryptoObject; WEAK (Class 2) is convenience only", "They are the same security level"],
+      "correctIndex": 1,
+      "explanation": "BIOMETRIC_STRONG (Class 3) meets a higher security bar and is required for CryptoObject use. BIOMETRIC_WEAK (Class 2) is for convenience and cannot be used with the Keystore.",
+      "relatedSlug": "biometric-prompt"
+    },
+    {
+      "id": 5,
+      "question": "Which is a common security mistake in Android apps?",
+      "options": ["Using HTTPS for all network calls", "Hardcoding API secrets in the source code", "Using ProGuard/R8 for code obfuscation"],
+      "correctIndex": 1,
+      "explanation": "Hardcoding secrets in source code is a critical security mistake. API keys and secrets can be extracted via decompilation. Store them securely or use server-side approaches.",
+      "relatedSlug": "make-app-more-secure"
+    },
+    {
+      "id": 6,
+      "question": "Why should you disable debug logging in release builds?",
+      "options": ["To reduce APK size", "To prevent sensitive data like tokens from being exposed in logcat", "Debug logs slow down the UI"],
+      "correctIndex": 1,
+      "explanation": "Debug logs can leak sensitive information like auth tokens, user data, and API responses. Anyone with USB debugging access can read logcat on a production device.",
+      "relatedSlug": "make-app-more-secure"
+    },
+    {
+      "id": 7,
+      "question": "What should you do when BiometricPrompt throws KeyPermanentlyInvalidatedException?",
+      "options": ["Ignore it and retry", "Delete the old key and create a new one, requiring re-authentication", "Disable biometric authentication entirely"],
+      "correctIndex": 1,
+      "explanation": "This exception occurs when biometric credentials change (e.g., new fingerprint enrolled). Delete the invalidated key, generate a new one, and require the user to re-authenticate.",
+      "relatedSlug": "biometric-prompt"
+    },
+    {
+      "id": 8,
+      "question": "What is certificate pinning?",
+      "options": ["Pinning a certificate to the home screen", "Validating that the server's certificate matches an expected certificate to prevent MITM attacks", "Using a PIN code instead of passwords"],
+      "correctIndex": 1,
+      "explanation": "Certificate pinning validates that the server's SSL certificate matches a known, expected certificate. This prevents man-in-the-middle attacks even if a CA is compromised.",
+      "relatedSlug": "make-app-more-secure"
+    },
+    {
+      "id": 9,
+      "question": "What authentication token strategy is recommended for mobile apps?",
+      "options": ["Long-lived access tokens only", "Short-lived access tokens + refresh tokens", "No tokens, just username/password with each request"],
+      "correctIndex": 1,
+      "explanation": "Use short-lived access tokens (minutes to hours) combined with refresh tokens. Clear tokens on logout and rotate refresh tokens if possible for maximum security.",
+      "relatedSlug": "make-app-more-secure"
+    },
+    {
+      "id": 10,
+      "question": "Where does the Android Keystore store cryptographic keys?",
+      "options": ["In the app's internal storage", "In hardware-backed secure storage (TEE/Strongbox)", "In SharedPreferences"],
+      "correctIndex": 1,
+      "explanation": "The Android Keystore stores keys in hardware-backed secure storage (Trusted Execution Environment or Strongbox). Keys never leave the secure environment, making extraction extremely difficult.",
+      "relatedSlug": "biometric-prompt"
+    }
+  ]
+}

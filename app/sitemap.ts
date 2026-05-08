@@ -1,5 +1,6 @@
 import { MetadataRoute } from 'next'
 import { getAllQuestions } from '@/lib/content'
+import { getQuizCategories } from '@/lib/quiz'
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl = 'https://android-vault.vercel.app'
@@ -25,6 +26,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: 'weekly' as const,
       priority: 0.8,
     },
+    {
+      url: `${baseUrl}/quiz`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly' as const,
+      priority: 0.8,
+    },
   ]
 
   // Question routes
@@ -44,5 +51,14 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.7,
   }))
 
-  return [...routes, ...categoryRoutes, ...questionRoutes]
+  // Quiz category routes
+  const quizCategories = getQuizCategories()
+  const quizRoutes = quizCategories.map((qc) => ({
+    url: `${baseUrl}/quiz/${qc.category}`,
+    lastModified: new Date(),
+    changeFrequency: 'weekly' as const,
+    priority: 0.7,
+  }))
+
+  return [...routes, ...categoryRoutes, ...questionRoutes, ...quizRoutes]
 }

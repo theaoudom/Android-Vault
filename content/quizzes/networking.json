@@ -1,0 +1,87 @@
+{
+  "category": "networking",
+  "label": "Networking",
+  "icon": "🌐",
+  "questions": [
+    {
+      "id": 1,
+      "question": "What is the recommended way to handle Retrofit API errors in the repository layer?",
+      "options": ["Let raw exceptions bubble to the UI", "Wrap calls in a safeApiCall helper that returns a sealed Result class", "Use try-catch in every Activity"],
+      "correctIndex": 1,
+      "explanation": "Use a safeApiCall helper that wraps API calls and returns a sealed class (Success/Error/Loading). This prevents raw exceptions from reaching the UI layer.",
+      "relatedSlug": "retrofit-error-handling"
+    },
+    {
+      "id": 2,
+      "question": "What is the difference between an OkHttp Interceptor and an Authenticator?",
+      "options": ["They are the same thing", "Interceptors see every request; Authenticators trigger specifically on 401 responses", "Authenticators see every request; Interceptors trigger on 401"],
+      "correctIndex": 1,
+      "explanation": "Interceptors see every request/response and can modify them. Authenticators specifically trigger on 401 (Unauthorized) responses to refresh credentials and retry the request.",
+      "relatedSlug": "retrofit-error-handling"
+    },
+    {
+      "id": 3,
+      "question": "When implementing retry logic with OkHttp, should you retry on 401 Unauthorized?",
+      "options": ["Yes, always retry", "No, break on auth failures to avoid infinite loops", "Only retry once"],
+      "correctIndex": 1,
+      "explanation": "Never retry on 401 Unauthorized in a retry interceptor — it can cause infinite retry loops. Use an Authenticator instead to handle token refresh specifically.",
+      "relatedSlug": "retrofit-error-handling"
+    },
+    {
+      "id": 4,
+      "question": "What does OkHttp's addInterceptor() do vs addNetworkInterceptor()?",
+      "options": ["They are identical", "addInterceptor runs once per call; addNetworkInterceptor runs per network request including redirects", "addNetworkInterceptor runs first"],
+      "correctIndex": 1,
+      "explanation": "Application interceptors (addInterceptor) run once per logical call. Network interceptors (addNetworkInterceptor) run for every actual network request, including redirects and retries.",
+      "relatedSlug": "retrofit-okhttp-networking"
+    },
+    {
+      "id": 5,
+      "question": "Which Kotlin approach is used for type-safe error handling with Retrofit results?",
+      "options": ["Enum classes", "Sealed classes (e.g., NetworkResult<T>)", "Data classes only"],
+      "correctIndex": 1,
+      "explanation": "Sealed classes like NetworkResult<T> with Success, Error, and Loading subtypes provide type-safe, exhaustive error handling that the compiler can verify.",
+      "relatedSlug": "retrofit-error-handling"
+    },
+    {
+      "id": 6,
+      "question": "What library is commonly used with Retrofit for JSON serialization in Kotlin?",
+      "options": ["Jackson", "Kotlinx Serialization or Gson", "SimpleXML"],
+      "correctIndex": 1,
+      "explanation": "Kotlinx Serialization (recommended for Kotlin-first projects) or Gson are the most commonly used JSON converters with Retrofit in Android development.",
+      "relatedSlug": "retrofit-okhttp-networking"
+    },
+    {
+      "id": 7,
+      "question": "How should you handle SocketTimeoutException in a network layer?",
+      "options": ["Ignore it since it rarely happens", "Catch it as part of IOException handling and show a user-friendly timeout message", "Let it crash the app"],
+      "correctIndex": 1,
+      "explanation": "SocketTimeoutException is a subclass of IOException. Handle it in your safeApiCall to show a user-friendly 'connection timeout' message instead of a generic error.",
+      "relatedSlug": "retrofit-error-handling"
+    },
+    {
+      "id": 8,
+      "question": "What is the purpose of a base URL in Retrofit?",
+      "options": ["It defines the error handling strategy", "It specifies the root URL for all API endpoints", "It configures the timeout duration"],
+      "correctIndex": 1,
+      "explanation": "The base URL is the root URL of your API server. All endpoint paths defined in your Retrofit interface are resolved relative to this base URL.",
+      "relatedSlug": "retrofit-okhttp-networking"
+    },
+    {
+      "id": 9,
+      "question": "What is the correct way to inspect the error body from a failed Retrofit response?",
+      "options": ["Access response.body() directly", "Call response.errorBody()?.string()", "Check response.headers()"],
+      "correctIndex": 1,
+      "explanation": "For non-successful responses, use response.errorBody()?.string() to read the error details. response.body() will be null for error responses.",
+      "relatedSlug": "retrofit-error-handling"
+    },
+    {
+      "id": 10,
+      "question": "Why should error body parsing happen in the Repository layer, not the UI layer?",
+      "options": ["The UI layer doesn't have access to network classes", "To maintain separation of concerns and keep the UI layer clean", "It doesn't matter where you parse it"],
+      "correctIndex": 1,
+      "explanation": "Parsing error bodies in the Repository layer maintains separation of concerns. The UI layer should only receive clean, structured result objects (Success/Error) without dealing with raw HTTP responses.",
+      "relatedSlug": "retrofit-error-handling"
+    }
+  ]
+}
