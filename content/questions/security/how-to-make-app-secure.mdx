@@ -1,0 +1,51 @@
+---
+title: "How to make your Android app secure?"
+slug: "how-to-make-app-secure"
+category: "security"
+difficulty: "mid"
+tags: ["security", "best-practices", "encryption", "network", "obfuscation"]
+lastUpdated: "2026-05-11"
+---
+
+## Quick Interview Answer
+Securing an Android app requires a multi-layered approach: 
+1. **Network**: Enforce HTTPS and implement SSL/TLS Certificate Pinning. 
+2. **Storage**: Never store sensitive data in plain text; use `EncryptedSharedPreferences` and the Android Keystore. 
+3. **Code**: Obfuscate code using ProGuard/R8 to deter reverse engineering. 
+4. **Authentication**: Use short-lived access tokens and biometric authentication. 
+5. **Components**: Do not export Activities/Services/Receivers in the Manifest unless explicitly required.
+
+## Deep Explanation
+App security shouldn't be an afterthought. It must be built into the architecture from day one. Here are the core pillars of Android App Security:
+
+### 1. Network Security (Data in Transit)
+- **Always use HTTPS:** Ensure all API communication is encrypted. Use `android:usesCleartextTraffic="false"` in your Manifest to prevent accidental HTTP requests (this is the default in modern Android versions).
+- **SSL/TLS Certificate Pinning:** Use tools like OkHttp's `CertificatePinner` to ensure your app only communicates with servers holding a specific, trusted certificate. This prevents Man-In-The-Middle (MITM) attacks where an attacker intercepts your network traffic.
+
+### 2. Local Storage Security (Data at Rest)
+- **Avoid plain text SharedPreferences:** For session tokens, passwords, or PII (Personally Identifiable Information), always use the Jetpack Security library's `EncryptedSharedPreferences`.
+- **Use Android Keystore:** Store cryptographic keys in the hardware-backed Android Keystore system. This makes it extremely difficult for attackers to extract the keys from the device.
+- **Clear Cache:** Do not cache sensitive data, or ensure it is actively cleared when the user logs out.
+
+### 3. Code Hardening & Obfuscation
+- **ProGuard / R8:** Enable code shrinking and obfuscation in your `build.gradle` (`isMinifyEnabled = true`). This renames classes and methods, making it significantly harder for attackers to decompile and understand your code logic.
+- **Root Detection:** For high-security apps (like banking or enterprise), implement root detection libraries (like RootBeer or the Google Play Integrity API) to block or restrict usage on compromised/rooted devices.
+
+### 4. Securing App Components (IPC)
+- **Exported Components:** By default, Android components (Activities, Services, BroadcastReceivers, ContentProviders) should not be exported (`android:exported="false"`). Only export them if other apps need to interact with them, and if so, protect them with custom permission checks.
+- **Intents:** Avoid putting sensitive data in `Intent` extras, as they can potentially be intercepted by malicious apps on the device.
+
+### 5. Authentication & Session Management
+- **Token Management:** Never store user passwords locally. Use short-lived JWT access tokens alongside securely stored refresh tokens.
+- **Biometrics:** Use the `BiometricPrompt` API for sensitive actions (e.g., authorizing a payment or opening a vault) rather than relying solely on session permanence.
+
+## Common Mistakes
+- Storing access tokens or passwords in plain `SharedPreferences` or SQLite databases.
+- Leaving `android:exported="true"` on sensitive Activities or Services.
+- Logging sensitive data in `Logcat` (e.g., `Log.d("Auth", "Token: $token")`), which can be read by device logs if not careful.
+
+## Follow-up Questions
+- **Q:** How do you prevent users from taking screenshots of sensitive screens?
+  **A:** Set `window.setFlags(WindowManager.LayoutParams.FLAG_SECURE, WindowManager.LayoutParams.FLAG_SECURE)` in the Activity's `onCreate()`.
+- **Q:** What is SSL Pinning and what are its risks?
+  **A:** SSL Pinning hardcodes the server's certificate hash in the app. The major risk is that if the server certificate expires or rotates unexpectedly, the app will instantly break and refuse to connect until a new app update is shipped to the Play Store.

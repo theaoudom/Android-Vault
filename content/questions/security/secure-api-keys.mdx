@@ -1,0 +1,42 @@
+---
+title: "How to secure API Keys and Secrets in Android?"
+slug: "secure-api-keys"
+category: "security"
+difficulty: "mid"
+tags: ["security", "api-keys", "ndk", "secrets"]
+lastUpdated: "2026-05-11"
+---
+
+## Quick Interview Answer
+Never hardcode API keys directly in your Java/Kotlin code or `strings.xml`. Use `local.properties` in combination with the Secrets Gradle Plugin to inject keys at build time. For highly sensitive secrets, use the Android NDK to store them in C/C++ native code. Ultimately, the safest approach is to keep secrets on your backend and have the app communicate through your API.
+
+## Deep Explanation
+Securing API keys and sensitive data is a fundamental part of Android app security. Hardcoding secrets makes them easily extractable by anyone who decompiles your APK.
+
+### 1. Secrets Gradle Plugin
+This is the recommended approach for configuration keys (like Google Maps or Firebase).
+- Store your keys in `local.properties` (which should never be committed to version control).
+- Use the **Secrets Gradle Plugin for Android** to safely expose these values as `BuildConfig` variables or `AndroidManifest.xml` placeholders at compile time.
+
+### 2. Native C/C++ Code (NDK)
+For sensitive keys that must be shipped with the app, storing them in a compiled C/C++ library using the Android NDK provides a stronger layer of defense.
+- The compiled `.so` (shared object) library is much harder to reverse-engineer than Java/Kotlin `.dex` files.
+- To prevent keys from being extracted via memory dumping or string analysis, obscure the strings using bitwise operations (like XOR) inside the native code and only decrypt them at runtime.
+
+### 3. Backend Proxying (The Best Approach)
+The absolute safest way to handle sensitive 3rd party API keys is to **not** store them in the app at all.
+- Authenticate the app with your own backend server.
+- Store the 3rd party API keys securely on your server.
+- The app sends a request to your backend, which then proxies the request to the 3rd party service using the secret key.
+
+## Common Mistakes
+- Storing API keys in `strings.xml`, which are stored in plain text and easily readable in a decompiled app.
+- Hardcoding secrets as `const val` in Kotlin.
+- Committing files containing secrets to public version control systems.
+- Relying entirely on ProGuard/R8 to hide keys (it only obfuscates code structure, not string literals).
+
+## Follow-up Questions
+- **Q:** Can ProGuard or R8 hide API keys?  
+  **A:** No. They obfuscate class and method names to deter reverse engineering, but string constants remain intact and easily visible.
+- **Q:** How do you protect user data at rest?  
+  **A:** Use `EncryptedSharedPreferences` for key-value pairs or SQLCipher for databases, backed by keys securely generated and stored in the Android Keystore system.
