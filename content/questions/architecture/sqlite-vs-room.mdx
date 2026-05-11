@@ -1,0 +1,38 @@
+---
+title: "Can you compare SQLite and Room?"
+slug: "sqlite-vs-room"
+category: "architecture"
+difficulty: "mid"
+tags: ["room", "sqlite", "database", "comparison"]
+lastUpdated: "2026-05-11"
+---
+
+## Quick Interview Answer
+SQLite is the underlying relational database engine built into Android, requiring manual SQL execution and boilerplate cursor mapping. Room is a Jetpack abstraction layer built *on top* of SQLite that uses annotations to automatically map objects, provides compile-time verification of SQL queries, and natively supports modern reactive programming (Flow/LiveData). Google strongly recommends using Room over raw SQLite.
+
+## Deep Explanation
+It is important to understand that Room does not replace SQLite; it wraps it. Every Room database is essentially an SQLite database under the hood. The choice isn't about different database technologies, but rather the API used to interact with it.
+
+### Feature Comparison
+
+| Feature | Raw SQLite (`SQLiteOpenHelper`) | Room |
+| :--- | :--- | :--- |
+| **Abstraction Level** | Low-level. You write raw queries and map cursors manually. | High-level ORM. Data is automatically mapped to Kotlin/Java objects. |
+| **SQL Verification** | Runtime. Errors in SQL queries cause app crashes at runtime. | Compile-time. Errors in SQL queries break the build, catching bugs early. |
+| **Boilerplate Code** | High. Requires `ContentValues`, manual `Cursor` iteration, and helper classes. | Low. Uses clean annotations (`@Entity`, `@Dao`, `@Database`). |
+| **Asynchronous Support** | Manual. You must manage background threads (e.g., using Executors or Coroutines manually). | Native. First-class support for `suspend` functions, `Flow`, and `LiveData`. |
+| **Database Migrations**| Complex. You must manually write and manage `onUpgrade` logic. | Structured. You write explicit `Migration` classes that Room manages cleanly. |
+
+### When to use which?
+- **Use Room:** For 99% of modern Android applications. It significantly speeds up development, prevents SQL runtime errors, and seamlessly integrates with modern Android architectures (MVVM, Clean Architecture) and Kotlin Coroutines.
+- **Use Raw SQLite:** Very rarely. You might interact with it directly if you are maintaining an extremely old legacy codebase, if you have highly dynamic schemas where the structure isn't known at compile-time (which Room struggles with since entities must be strictly defined via annotations), or if you are writing a multi-platform C++ library using the NDK that needs direct native database access.
+
+## Common Mistakes
+- Thinking that Room is a completely different database engine than SQLite. Room *is* SQLite.
+- Attempting to mix raw `SQLiteOpenHelper` code with a Room database in the same project without understanding that Room expects to own the schema and connections.
+
+## Follow-up Questions
+- **Q:** Since Room generates code, does it increase the APK size significantly?
+  **A:** The generated code is relatively small and highly efficient. The benefits of stability and developer speed far outweigh the negligible size increase.
+- **Q:** How do you test a Room database?
+  **A:** You can test Room databases using instrumentation tests on an Android device/emulator, or using an in-memory database (`Room.inMemoryDatabaseBuilder()`) to ensure tests run quickly and don't persist data between test runs.

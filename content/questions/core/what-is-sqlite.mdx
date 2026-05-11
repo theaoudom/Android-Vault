@@ -1,0 +1,37 @@
+---
+title: "What is SQLite in Android?"
+slug: "what-is-sqlite"
+category: "core"
+difficulty: "junior"
+tags: ["sqlite", "database", "storage", "core"]
+lastUpdated: "2026-05-11"
+---
+
+## Quick Interview Answer
+SQLite is an open-source, lightweight, embedded relational database engine. In Android, it is built directly into the OS, allowing applications to store structured data locally in a single file without needing a separate database server process.
+
+## Deep Explanation
+SQLite is the foundation of structured local data storage in Android. It provides a standard SQL interface to store, query, and manage data efficiently.
+
+### Key Characteristics of SQLite:
+- **Serverless:** It does not require a separate background server process to operate. The database engine runs directly within the application process.
+- **Zero Configuration:** There is no setup or administration required. The database is simply a file stored securely in the app's internal storage (`/data/data/your.package.name/databases/`).
+- **Relational:** It supports standard relational database concepts like tables, rows, columns, primary keys, foreign keys, and indexes.
+- **Transactional:** It supports ACID (Atomicity, Consistency, Isolation, Durability) properties, ensuring that database operations are reliable even in the event of crashes or power failures.
+
+### How it works in Android
+Android provides the `android.database.sqlite` package to interact with SQLite. 
+- You typically extend `SQLiteOpenHelper` to manage database creation and version management (handling `onCreate()` and `onUpgrade()`).
+- You use `SQLiteDatabase` objects to execute SQL commands like `execSQL()`, `insert()`, `update()`, `delete()`, and `query()`.
+- Queries return a `Cursor` object, which provides read-write access to the result set returned by a database query.
+
+## Common Mistakes
+- Performing database operations (which are disk I/O) on the main UI thread, leading to UI freezes or Application Not Responding (ANR) errors.
+- Forgetting to call `.close()` on the `Cursor` or `SQLiteDatabase` instances, causing memory leaks.
+- Writing raw SQL queries by hand with string concatenation, which is error-prone and vulnerable to SQL injection (always use parameterized queries `?` with selection arguments).
+
+## Follow-up Questions
+- **Q:** How do you view an SQLite database on an Android device or emulator?
+  **A:** You can use Android Studio's **App Inspection** tool (specifically the Database Inspector tab) to view, query, and modify the live database while the app is running.
+- **Q:** What is a `Cursor`?
+  **A:** A `Cursor` is an interface that provides random read-write access to the result set returned by a database query. You iterate through it (e.g., using `moveToNext()`) to read data row by row.

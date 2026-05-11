@@ -1,0 +1,36 @@
+---
+title: "What is Room in Android?"
+slug: "what-is-room"
+category: "architecture"
+difficulty: "junior"
+tags: ["room", "database", "storage", "architecture-components"]
+lastUpdated: "2026-05-11"
+---
+
+## Quick Interview Answer
+Room is a persistence library that is part of the Android Architecture Components (Jetpack). It acts as an abstraction layer over SQLite, making it easier to work with databases by using annotations, providing compile-time verification of SQL queries, and offering seamless integration with reactive data streams like Kotlin Flows and LiveData.
+
+## Deep Explanation
+While SQLite is powerful, using it directly requires writing a lot of boilerplate code (like managing `Cursors` and `ContentValues`) and manually verifying SQL queries. Room solves these problems by providing a robust, modern ORM (Object-Relational Mapping) layer.
+
+### The Three Main Components of Room
+1. **Database:** The main access point for the underlying SQLite database. It is an abstract class annotated with `@Database` that defines the entities (tables) and version number, and returns instances of the DAOs.
+2. **Entity:** Represents a table within the database. It is a simple Kotlin data class (or Java class) annotated with `@Entity`. The fields of the class represent the columns.
+3. **DAO (Data Access Object):** An interface annotated with `@Dao` containing the methods used to access, insert, update, or delete data (e.g., using `@Insert`, `@Query`, `@Delete`). Room implements these methods automatically at compile-time.
+
+### Why use Room?
+- **Compile-time SQL Verification:** If you misspell a table name or column in a `@Query` annotation, the project will fail to compile. This prevents runtime crashes.
+- **Boilerplate Reduction:** Room eliminates the need to manually map `Cursor` data to Java/Kotlin objects. It handles the object mapping automatically.
+- **Reactive Observation:** Room DAOs can return `LiveData`, `Flow`, or RxJava observables. When the underlying database table changes, Room automatically emits the new data to these streams, making UI updates effortless.
+- **Coroutines Support:** Room has first-class support for Kotlin Coroutines, allowing you to easily define DAO methods as `suspend` functions for safe asynchronous execution.
+
+## Common Mistakes
+- Allowing main thread queries. Room throws an exception by default if you try to access the database on the main thread, but developers sometimes bypass this with `allowMainThreadQueries()` instead of properly using Coroutines or background threads.
+- Storing large objects (like Bitmaps or massive JSON strings) directly in the database instead of storing the file path.
+- Forgetting to provide a `Migration` strategy when updating the database version, which leads to the app crashing (`IllegalStateException`) upon launch after an update.
+
+## Follow-up Questions
+- **Q:** How do you handle database schema changes in Room?
+  **A:** By incrementing the database version number in the `@Database` annotation and providing a `Migration` object that executes the necessary SQL to alter the tables.
+- **Q:** Can Room handle complex relations like One-to-Many?
+  **A:** Yes, Room supports relations using the `@Relation` annotation to model one-to-one, one-to-many, and many-to-many relationships without needing you to write complex, raw JOIN queries.
