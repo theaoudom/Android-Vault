@@ -1,0 +1,37 @@
+---
+title: "What is SharedPreferences?"
+slug: "what-is-sharedpreferences"
+category: "core"
+difficulty: "junior"
+tags: ["sharedpreferences", "storage", "core"]
+lastUpdated: "2026-05-11"
+---
+
+## Quick Interview Answer
+`SharedPreferences` is an Android API used to store and retrieve small amounts of primitive data as key-value pairs (booleans, floats, ints, longs, and strings). The data is persisted across user sessions in an XML file stored in the app's internal memory.
+
+## Deep Explanation
+`SharedPreferences` provides a simple, lightweight way to save basic user settings or small configurations without the overhead of setting up an entire SQLite database.
+
+### Key Characteristics
+- **Key-Value Storage:** Data is stored as pairs, where a String key is used to read or write a primitive value.
+- **XML Backed:** The data is ultimately saved to an XML file located in the `/data/data/<package_name>/shared_prefs/` directory.
+- **Synchronous vs Asynchronous:**
+  - `commit()`: Writes the data synchronously to the disk and returns a boolean indicating success. This can block the main thread.
+  - `apply()`: Commits the changes to the in-memory SharedPreferences immediately but writes the changes to disk asynchronously in the background. This is the recommended approach for most use cases to avoid UI jank.
+
+### Common Use Cases
+- User preferences (e.g., dark mode toggle, notification settings).
+- First-time app launch flags (e.g., `has_seen_onboarding = true`).
+- Simple authentication states (e.g., `is_logged_in`).
+
+## Common Mistakes
+- **Storing Large Data:** Attempting to store large JSON strings, images (Base64), or complex objects. `SharedPreferences` reads the entire XML file into memory when loaded. Large files will cause memory spikes and slow load times.
+- **Using `commit()` on the Main Thread:** This can cause ANRs (Application Not Responding) because it performs blocking Disk I/O. Always prefer `apply()` unless you absolutely need the boolean return value immediately.
+- **Concurrency Issues:** `SharedPreferences` is thread-safe for reading and writing, but not multi-process safe.
+
+## Follow-up Questions
+- **Q:** What is the difference between `commit()` and `apply()`?
+  **A:** `commit()` writes data synchronously and returns a success boolean. `apply()` writes to memory instantly and to disk asynchronously, returning nothing.
+- **Q:** How do you store complex objects in SharedPreferences?
+  **A:** While not recommended for large data, you can serialize the object to a JSON string (using Gson or Moshi) and store the string.

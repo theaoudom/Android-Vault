@@ -1,0 +1,36 @@
+---
+title: "DataStore vs SharedPreferences"
+slug: "datastore-vs-sharedpreferences"
+category: "architecture"
+difficulty: "mid"
+tags: ["datastore", "sharedpreferences", "comparison", "storage"]
+lastUpdated: "2026-05-11"
+---
+
+## Quick Interview Answer
+DataStore is the modern replacement for SharedPreferences. While SharedPreferences is synchronous, lacks type safety, and can block the UI thread, DataStore is built on Kotlin Coroutines and Flow, making it fully asynchronous, thread-safe, and capable of type safety (via Proto DataStore). 
+
+## Deep Explanation
+Google deprecated SharedPreferences in favor of Jetpack DataStore due to long-standing architectural limitations in how SharedPreferences handles Disk I/O and data consistency.
+
+### Feature Comparison
+
+| Feature | SharedPreferences | Jetpack DataStore |
+| :--- | :--- | :--- |
+| **Async API** | No (Except `apply()` which still has edge cases causing ANRs). | Yes (Built natively on Coroutines and `Flow`). |
+| **Main Thread Safe** | No (Reading or using `commit()` can block the main thread). | Yes (Underlying work is strictly moved to `Dispatchers.IO`). |
+| **Type Safety** | No (You can accidentally try to read an `Int` as a `String`). | Yes (With Proto DataStore using Protocol Buffers). |
+| **Error Handling** | No (Silently fails or throws fatal runtime exceptions). | Yes (Handles `IOExceptions` natively via Flow's `catch`). |
+| **Data Migration** | Difficult (Requires manual logic). | Built-in (Provides a `DataMigration` interface). |
+| **Data format** | XML | Preferences DataStore or Protocol Buffers. |
+
+### The "apply()" ANR Issue in SharedPreferences
+A major reason DataStore was created is a known issue with SharedPreferences' `apply()`. While `apply()` is technically asynchronous, the Android OS will sometimes force the main thread to wait for all pending `apply()` disk writes to finish during lifecycle events (like `onStop()` or `onPause()`). If the disk is slow, this forces the main thread to wait, causing an ANR. DataStore avoids this entirely.
+
+## Common Mistakes
+- **Refusing to upgrade:** Continuing to use SharedPreferences in new projects. DataStore is the recommended approach for all new development.
+- **Overcomplicating DataStore:** Using Proto DataStore (which requires learning Protobuf syntax) for a single boolean flag when Preferences DataStore would be perfectly fine.
+
+## Follow-up Questions
+- **Q:** Is DataStore a replacement for Room?
+  **A:** No. DataStore is for small, simple datasets or key-value pairs (like settings). Room is a full relational database for large, complex datasets, relational queries, and partial updates.

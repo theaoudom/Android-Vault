@@ -1,0 +1,44 @@
+---
+title: "How to save data to local storage securely?"
+slug: "secure-local-storage"
+category: "security"
+difficulty: "mid"
+tags: ["security", "storage", "encryption", "keystore"]
+lastUpdated: "2026-05-11"
+---
+
+## Quick Interview Answer
+To securely save data locally, never use plain text `SharedPreferences` or SQLite for sensitive information. Instead, use the **Jetpack Security (Security-Crypto)** library, specifically `EncryptedSharedPreferences` for key-value pairs and `EncryptedFile` for files. For databases, use **SQLCipher** with Room. Under the hood, these rely on the hardware-backed **Android Keystore** to protect the encryption keys.
+
+## Deep Explanation
+Storing data securely means ensuring that even if a device is rooted or physically compromised, an attacker cannot easily read the user's data. 
+
+### 1. EncryptedSharedPreferences
+Part of the Jetpack Security library, this is a wrapper around the standard `SharedPreferences` that automatically encrypts both the keys and the values.
+- **Keys** are encrypted using a deterministic encryption algorithm, allowing the system to properly look up data.
+- **Values** are encrypted using AES-256 GCM, which is highly secure.
+- It is practically a drop-in replacement. You create it using `EncryptedSharedPreferences.create()`, passing in a Master Key from the Android Keystore, and then use it exactly like regular `SharedPreferences`.
+
+### 2. EncryptedFile
+Also part of Jetpack Security, this provides custom `FileInputStream` and `FileOutputStream` implementations that automatically encrypt data written to disk and decrypt data read from disk.
+
+### 3. Encrypted Databases (SQLCipher)
+If you are using Room or SQLite and need to store sensitive data (like medical records, financial transactions, or PII), you should use **SQLCipher**.
+- SQLCipher is an open-source extension to SQLite that provides transparent 256-bit AES encryption of database files.
+- It integrates seamlessly with Room via the `SupportSQLiteOpenHelper.Factory`.
+
+### 4. Android Keystore System
+The backbone of Android local security. The Keystore allows you to generate and store cryptographic keys in a hardware-backed secure element (like a Trusted Execution Environment or Secure Enclave).
+- Keys stored here cannot be extracted from the device, even on rooted phones.
+- Jetpack Security uses the Keystore automatically to generate and store the "Master Key" used to encrypt your files or SharedPreferences.
+
+## Common Mistakes
+- **Hardcoding Encryption Keys:** Using a hardcoded string as an AES key in your code. A reverse engineer can easily find the key in the decompiled APK.
+- **Encrypting everything:** Encryption carries a performance and battery overhead. You should only encrypt sensitive data (tokens, PII, financial data), not trivial data like "is_dark_mode_enabled".
+- **Storing passwords:** You should almost never store a user's password locally, even encrypted. Use authentication tokens (JWTs) instead.
+
+## Follow-up Questions
+- **Q:** How do you securely store an authentication token?
+  **A:** Use `EncryptedSharedPreferences`.
+- **Q:** What happens if the user clears app data?
+  **A:** The encrypted files and the Keystore keys associated with the app are deleted, permanently destroying access to the secure data.

@@ -1,0 +1,40 @@
+---
+title: "What is DataStore?"
+slug: "what-is-datastore"
+category: "architecture"
+difficulty: "mid"
+tags: ["datastore", "storage", "architecture-components", "coroutines"]
+lastUpdated: "2026-05-11"
+---
+
+## Quick Interview Answer
+Jetpack DataStore is a modern data storage solution designed to replace `SharedPreferences`. Built on Kotlin Coroutines and Flow, it provides a safe and asynchronous way to store data either as key-value pairs (Preferences DataStore) or as typed objects (Proto DataStore) using Protocol Buffers.
+
+## Deep Explanation
+DataStore was introduced to address the shortcomings of `SharedPreferences`, specifically around synchronous APIs, lack of type safety, and error handling.
+
+### Two Types of DataStore
+1. **Preferences DataStore:**
+   - Stores and accesses data using keys, similar to `SharedPreferences`.
+   - **Does not require a predefined schema.**
+   - Lacks type safety.
+2. **Proto DataStore:**
+   - Stores data as instances of a custom data type.
+   - **Requires defining a schema using Protocol Buffers (Protobuf).**
+   - Provides strict type safety, ensuring you read/write the exact data types you expect.
+
+### Key Advantages over SharedPreferences
+- **Fully Asynchronous:** Built entirely on Kotlin Coroutines and Flow. It never blocks the main UI thread.
+- **Safe from UI Jank:** It safely handles data migrations and disk I/O in the background.
+- **Error Handling:** Catch exceptions natively using Flow's `catch` operator (e.g., handling `IOException` when reading data).
+- **Transactional:** Provides ACID guarantees, meaning data updates are transactional and safe from partial writes.
+
+## Common Mistakes
+- Trying to read DataStore values synchronously on the main thread. DataStore is designed to be observed via `Flow` or read inside a coroutine.
+- Creating multiple instances of the same DataStore file. You should only ever have one instance of a specific DataStore active in a process to prevent file locks or state inconsistencies.
+
+## Follow-up Questions
+- **Q:** Should you always migrate from SharedPreferences to DataStore?
+  **A:** Google highly recommends migrating. If your app is heavily dependent on SharedPreferences and suffers from UI jank or type-safety issues, migrating is extremely beneficial.
+- **Q:** When should you use Proto DataStore over Preferences DataStore?
+  **A:** When you need strict type safety, complex object structures, or enum support. Preferences DataStore is better for simple, flat key-value pairs.

@@ -1,0 +1,60 @@
+---
+title: "Can we save a list of data in SharedPreferences?"
+slug: "save-list-in-sharedpreferences"
+category: "core"
+difficulty: "junior"
+tags: ["sharedpreferences", "storage", "json", "gson"]
+lastUpdated: "2026-05-11"
+---
+
+## Quick Interview Answer
+Yes, but not directly as an `ArrayList` or a custom object list. `SharedPreferences` only supports storing a `Set<String>` natively. To save a complex list (like a list of custom objects), you must first serialize the list into a JSON String using a library like Gson or Moshi, save that String, and then deserialize it back into a list when reading.
+
+## Deep Explanation
+`SharedPreferences` is explicitly designed for simple, primitive key-value pairs (booleans, floats, ints, longs, and strings). It does not have built-in support for generic Java/Kotlin Collections like `List<T>`, `ArrayList<T>`, or `Map<K, V>`.
+
+### The Native Way: `putStringSet`
+If your list only contains unique `String` values, you can use the built-in `putStringSet` method.
+```kotlin
+val sharedPrefs = context.getSharedPreferences("prefs", Context.MODE_PRIVATE)
+
+// Saving a Set of Strings
+val myStringSet = setOf("apple", "banana", "cherry")
+sharedPrefs.edit().putStringSet("my_string_set", myStringSet).apply()
+
+// Reading a Set of Strings
+val retrievedSet = sharedPrefs.getStringSet("my_string_set", emptySet())
+```
+*Note: `putStringSet` does not guarantee that the order of the strings will be preserved.*
+
+### The Custom Object Way: JSON Serialization
+If you need to store a `List<User>`, an ordered `ArrayList<String>`, or any other complex data structure, you must convert it into a single `String` before saving it. JSON is the industry-standard format for this.
+
+**Using Gson:**
+```kotlin
+val sharedPrefs = context.getSharedPreferences("prefs", Context.MODE_PRIVATE)
+val gson = Gson()
+
+// 1. Saving a List of Objects
+val userList = listOf(User("Alice"), User("Bob"))
+val jsonString = gson.toJson(userList)
+sharedPrefs.edit().putString("users_list", jsonString).apply()
+
+// 2. Retrieving the List of Objects
+val retrievedJson = sharedPrefs.getString("users_list", null)
+if (retrievedJson != null) {
+    // You need a TypeToken to tell Gson what type of List to construct
+    val type = object : TypeToken<List<User>>() {}.type
+    val retrievedList: List<User> = gson.fromJson(retrievedJson, type)
+}
+```
+
+## Common Mistakes
+- **Storing massive lists:** `SharedPreferences` loads the entire XML file into RAM when accessed. If you serialize a huge JSON array (e.g., 10,000 items) and save it, your app will consume a massive amount of memory and likely drop frames or freeze when that SharedPreferences file is first accessed.
+- **Forgetting about order:** Relying on `putStringSet` while expecting the items to stay in the exact order you inserted them. A `Set` natively does not guarantee insertion order.
+
+## Follow-up Questions
+- **Q:** If the list is very large, what should you use instead of SharedPreferences?
+  **A:** You should definitely use **Room** (SQLite) to store the items as individual rows in a relational database table.
+- **Q:** How do you store complex objects in the newer Jetpack DataStore?
+  **A:** You would use **Proto DataStore**, which uses Protocol Buffers to define and serialize complex, strongly-typed objects instead of relying on JSON strings.

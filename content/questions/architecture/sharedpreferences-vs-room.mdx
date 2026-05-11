@@ -1,0 +1,43 @@
+---
+title: "Compare SharedPreferences and Room"
+slug: "sharedpreferences-vs-room"
+category: "architecture"
+difficulty: "junior"
+tags: ["sharedpreferences", "room", "storage", "comparison"]
+lastUpdated: "2026-05-11"
+---
+
+## Quick Interview Answer
+`SharedPreferences` is a lightweight, key-value storage system meant for small amounts of simple data like user settings. `Room` is a robust ORM layer over SQLite, meant for storing large amounts of structured, relational data. You use SharedPreferences for configurations and Room for complex datasets.
+
+## Deep Explanation
+Choosing between SharedPreferences and Room comes down to the **shape**, **size**, and **relational complexity** of the data you need to store. 
+
+### Feature Comparison
+
+| Feature | SharedPreferences | Room (SQLite) |
+| :--- | :--- | :--- |
+| **Data Structure** | Flat Key-Value pairs (String -> Primitive). | Relational Tables (Rows and Columns). |
+| **Data Size** | Small (Settings, flags, simple tokens). | Large (Caches, lists of objects, offline data). |
+| **Querying** | Cannot query. You must know the exact String key to retrieve a value. | Powerful SQL querying (Filtering, sorting, joining tables). |
+| **Performance** | Reads the entire XML file into memory at once. Bad for large datasets. | Highly efficient for large datasets; can read specific rows without loading the whole DB. |
+| **Setup Overhead** | Extremely low. Takes one line of code to initialize. | High. Requires setting up Entities, DAOs, and a Database class. |
+
+### When to use SharedPreferences (or DataStore)
+- Saving simple user preferences (e.g., `notifications_enabled = true`).
+- Saving app state flags (e.g., `has_completed_onboarding = true`).
+- Storing a simple authentication token.
+
+### When to use Room
+- Implementing an offline-first architecture (caching network responses).
+- Storing user-generated content (e.g., a list of notes, a chat history, a shopping cart).
+- When data needs to be filtered or searched (e.g., `SELECT * FROM users WHERE age > 18`).
+- When data has relationships (e.g., A `User` has many `Posts`).
+
+## Common Mistakes
+- **Abusing SharedPreferences:** Trying to store a massive list of objects by serializing a huge JSON array into a single SharedPreferences String. This will cause memory spikes and slow app startup times.
+- **Over-engineering:** Setting up a complete Room Database just to store a single "is_first_launch" boolean flag.
+
+## Follow-up Questions
+- **Q:** If I have a complex `User` object, should I save it in SharedPreferences as JSON or in Room?
+  **A:** If it's just the currently logged-in user profile, saving it as JSON in SharedPreferences (or DataStore) is acceptable. If you need to store a *list* of users or query them, you must use Room.
