@@ -1,0 +1,66 @@
+---
+title: "Explain the View Lifecycle in Android."
+slug: "android-view-lifecycle"
+category: "components"
+difficulty: "advanced"
+tags: ["xml", "views", "lifecycle", "custom-views", "interview"]
+lastUpdated: "2026-05-15"
+---
+
+## Quick Interview Answer
+
+The Android View Lifecycle dictates how a View is drawn on the screen. The core sequence of methods is:
+1.  **Creation:** Constructors are called.
+2.  **Attachment:** `onAttachedToWindow()` is called when the view is attached to a window.
+3.  **Measurement:** `onMeasure()` determines the size requirements for this view and its children.
+4.  **Layout:** `onLayout()` assigns a size and position to all of its children (primarily used by ViewGroups).
+5.  **Drawing:** `onDraw()` renders the view's content onto the canvas.
+
+To trigger redraws manually, you use `invalidate()` (triggers `onDraw`) or `requestLayout()` (triggers `onMeasure` -> `onLayout` -> `onDraw`).
+
+## Deep Explanation
+
+Understanding the View Lifecycle is crucial when building Custom Views or optimizing UI performance in the legacy Android View system.
+
+### 1. Constructors
+
+When a View is created from code, the `View(Context)` constructor is called. When a View is inflated from XML, the `View(Context, AttributeSet)` constructor is called, passing the XML attributes to the view.
+
+### 2. Attachment to Window
+
+*   **`onAttachedToWindow()`:** Called when the view is attached to a window. This is a good place to allocate resources, register listeners, or start animations.
+*   **`onDetachedFromWindow()`:** Called when the view is removed from the window. You **must** clean up resources here (e.g., stop animations, unregister listeners) to prevent memory leaks.
+
+### 3. The Measurement Pass (`onMeasure`)
+
+Before Android can draw a view, it needs to know how big it should be. The parent ViewGroup asks the child View how much space it wants via `measure()`, which internally calls `onMeasure(int widthMeasureSpec, int heightMeasureSpec)`.
+
+*   **MeasureSpecs:** These integers pack the size and the "mode" (requirements) from the parent.
+    *   `EXACTLY`: The parent has determined an exact size (e.g., `layout_width="100dp"` or `match_parent`).
+    *   `AT_MOST`: The child can be as large as it wants up to a specified size (e.g., `layout_width="wrap_content"`).
+    *   `UNSPECIFIED`: The parent imposes no constraints.
+*   **Important Rule:** If you override `onMeasure`, you *must* call `setMeasuredDimension(width, height)` at the end, or an `IllegalStateException` will be thrown.
+
+### 4. The Layout Pass (`onLayout`)
+
+After measuring, the parent must position its children. `onLayout(boolean changed, int left, int top, int right, int bottom)` is primarily implemented by `ViewGroup` classes (like `LinearLayout` or `FrameLayout`) to dictate exactly where their child views will sit on the screen.
+
+### 5. The Drawing Pass (`onDraw`)
+
+Finally, `onDraw(Canvas canvas)` is called. The `Canvas` provides the 2D drawing API (drawing lines, circles, text, bitmaps).
+
+*   **Performance Warning:** `onDraw` can be called 60 times per second (or more) during animations. You must **never** allocate objects (like new `Paint` or `Path` objects) inside `onDraw`. Allocations trigger Garbage Collection, which causes UI stuttering (jank). Always allocate `Paint` objects in the constructor or initialization method.
+
+### Updating the View
+
+When data changes and the UI needs an update, you do not call the lifecycle methods directly. You use these triggers:
+
+*   **`invalidate()`:** Tells Android that the view's content is stale. It will schedule a call to `onDraw()`. Use this when the appearance changes (e.g., color, text) but the size remains the same.
+*   **`requestLayout()`:** Tells Android that the view's bounds might have changed. It schedules a new measure and layout pass, followed by `onDraw()`. Use this when the view needs to grow, shrink, or move.
+
+## Common Interview Follow-ups
+
+*   **Q: Why shouldn't you allocate objects in `onDraw()`?**
+    *   **A:** Because `onDraw()` is called frequently (e.g., every frame of an animation). Creating objects here leads to rapid memory allocation, triggering the Garbage Collector. GC pauses the main thread, leading to skipped frames and a laggy user interface.
+*   **Q: What is the difference between `invalidate()` and `postInvalidate()`?**
+    *   **A:** `invalidate()` must be called on the UI (Main) thread. If you are on a background thread and need to trigger a redraw, you must use `postInvalidate()`, which safely posts a message to the UI thread to execute the invalidation.
